@@ -1,83 +1,153 @@
-/* ConectAr - fondo #0d0d0d, cyan #00d4ff */
+/* ConectAr — #0d0d0d / cyan #00d4ff */
 
 .pagina {
   background: #0d0d0d;
   color: white;
-  min-height: 100vh;
+  min-height: 100svh;
   max-width: 430px;
   margin: 0 auto;
-  padding: 20px 16px;
+  padding: 24px 16px 40px;
   box-sizing: border-box;
   font-family: system-ui, sans-serif;
 }
 
-.logo {
-  text-align: center;
-  margin: 40px 0 50px;
-  font-size: 28px;
-  font-weight: bold;
+.pagina--centrada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.campo {
-  position: relative;
-  margin-bottom: 12px;
-}
+/* ── Logo ── */
+.logo-container { margin-bottom: 36px; }
+.logo-img { width: 190px; height: auto; }
+
+/* ── Formulario ── */
+.formulario { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+
+.campo { position: relative; }
 
 .campo input {
   width: 100%;
-  background: #1e1e1e;
-  border: 1px solid #333;
-  border-radius: 10px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
   color: white;
   font-size: 15px;
-  padding: 12px 40px 12px 12px;
+  padding: 14px 44px 14px 14px;
   box-sizing: border-box;
   outline: none;
+  transition: border-color 0.2s;
 }
+.campo input:focus { border-color: #00d4ff; }
+.campo input::placeholder { color: #555; }
 
-.campo input:focus {
-  border-color: #00d4ff;
-}
-
-.campo input::placeholder {
-  color: #666;
+.campo-icono {
+  position: absolute; right: 14px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px; pointer-events: none;
 }
 
 .ojo {
-  position: absolute;
-  right: 12px;
-  top: 50%;
+  position: absolute; right: 12px; top: 50%;
   transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
+  background: none; border: none; cursor: pointer; font-size: 16px;
 }
 
+/* ── Botón ── */
 .boton {
   width: 100%;
   background: #00d4ff;
   color: #0d0d0d;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 700;
   border: none;
-  border-radius: 10px;
-  padding: 14px;
+  border-radius: 12px;
+  padding: 15px;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 4px;
+  transition: opacity 0.2s;
 }
+.boton:hover { opacity: 0.85; }
 
-.boton:hover {
-  opacity: 0.85;
-}
+/* ── Pie ── */
+.pie { color: #666; font-size: 14px; margin-top: 20px; }
+.pie a { color: #00d4ff; }
 
-.pie {
-  text-align: center;
-  color: #888;
-  margin-top: 20px;
-  font-size: 14px;
-}
+/* ══════════════════════════════
+   PERFIL
+══════════════════════════════ */
 
-.pie a {
-  color: #00d4ff;
+.perfil-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 28px;
 }
+.perfil-titulo { font-size: 18px; font-weight: 600; margin: 0; }
+
+.btn-icono {
+  background: none; border: none; color: white;
+  font-size: 20px; cursor: pointer; padding: 4px 8px;
+  border-radius: 8px; transition: color 0.2s;
+}
+.btn-icono:hover { color: #00d4ff; }
+
+.perfil-identidad {
+  display: flex; flex-direction: column;
+  align-items: center; margin-bottom: 20px;
+}
+.perfil-avatar {
+  font-size: 52px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 2px solid #00d4ff;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 10px;
+}
+.perfil-nombre { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+.perfil-usuario { font-size: 14px; color: #888; margin: 0; }
+
+.perfil-stats {
+  display: flex; gap: 10px;
+  width: 100%; margin-bottom: 16px;
+}
+.perfil-stat {
+  flex: 1; background: #111; border: 1px solid #222;
+  border-radius: 12px; padding: 12px 8px; text-align: center;
+}
+.perfil-stat strong { display: block; font-size: 20px; color: #00d4ff; }
+.perfil-stat p { font-size: 12px; color: #888; margin: 2px 0 0; }
+
+.perfil-card {
+  width: 100%; background: #111; border: 1px solid #222;
+  border-radius: 12px; padding: 14px; margin-bottom: 16px;
+  box-sizing: border-box;
+}
+.perfil-nivel { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
+.xp-barra { background: #222; border-radius: 99px; height: 8px; overflow: hidden; margin-bottom: 6px; }
+.xp-relleno { background: #00d4ff; height: 100%; border-radius: 99px; }
+.xp-texto { font-size: 12px; color: #666; margin: 0; }
+
+.perfil-seccion { width: 100%; margin-bottom: 20px; }
+.perfil-seccion-titulo {
+  font-size: 15px; font-weight: 600;
+  margin: 0 0 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.badge {
+  background: #1a1a1a; border: 1px solid #333;
+  border-radius: 99px; font-size: 12px; padding: 1px 8px; color: #aaa;
+}
+.perfil-vacio { font-size: 13px; color: #555; margin: 0; padding: 14px 0; }
+
+/* Logros */
+.logro {
+  display: flex; align-items: center; gap: 12px;
+  background: #111; border: 1px solid #222;
+  border-radius: 12px; padding: 12px 14px;
+  margin-bottom: 8px; opacity: 0.45;
+}
+.logro-titulo { font-size: 14px; font-weight: 600; margin: 0 0 2px; }
+.logro-desc { font-size: 12px; color: #666; margin: 0; }
