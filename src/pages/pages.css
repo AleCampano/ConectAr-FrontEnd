@@ -1,4 +1,4 @@
-/* ConectAr — #0d0d0d / cyan #00d4ff */
+/* ConectAr — #0d0d0d / #00d4ff */
 
 .pagina {
   background: #0d0d0d;
@@ -11,143 +11,82 @@
   font-family: system-ui, sans-serif;
 }
 
-.pagina--centrada {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.centrada {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
 }
 
-/* ── Logo ── */
-.logo-container { margin-bottom: 36px; }
-.logo-img { width: 190px; height: auto; }
-
-/* ── Formulario ── */
-.formulario { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-
-.campo { position: relative; }
-
-.campo input {
-  width: 100%;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  color: white;
-  font-size: 15px;
-  padding: 14px 44px 14px 14px;
-  box-sizing: border-box;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.campo input:focus { border-color: #00d4ff; }
-.campo input::placeholder { color: #555; }
-
-.campo-icono {
-  position: absolute; right: 14px; top: 50%;
-  transform: translateY(-50%);
-  font-size: 16px; pointer-events: none;
-}
-
-.ojo {
-  position: absolute; right: 12px; top: 50%;
-  transform: translateY(-50%);
-  background: none; border: none; cursor: pointer; font-size: 16px;
-}
-
-/* ── Botón ── */
-.boton {
-  width: 100%;
-  background: #00d4ff;
-  color: #0d0d0d;
-  font-size: 16px;
-  font-weight: 700;
-  border: none;
-  border-radius: 12px;
-  padding: 15px;
-  cursor: pointer;
-  margin-top: 4px;
-  transition: opacity 0.2s;
-}
-.boton:hover { opacity: 0.85; }
-
-/* ── Pie ── */
+/* ── Auth ── */
+.logo { width: 190px; margin-bottom: 32px; }
+form { width: 100%; }
 .pie { color: #666; font-size: 14px; margin-top: 20px; }
 .pie a { color: #00d4ff; }
 
-/* ══════════════════════════════
-   PERFIL
-══════════════════════════════ */
+/* ── Campo ── */
+.campo { position: relative; margin-bottom: 10px; }
+.campo input {
+  width: 100%; background: #1a1a1a; border: 1px solid #2a2a2a;
+  border-radius: 12px; color: white; font-size: 15px;
+  padding: 14px 44px 14px 14px; box-sizing: border-box; outline: none;
+}
+.campo input:focus { border-color: #00d4ff; }
+.campo input::placeholder { color: #555; }
+.campo p, .campo button {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  margin: 0; font-size: 16px; background: none; border: none; cursor: pointer; color: white;
+}
 
-.perfil-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  margin-bottom: 28px;
+/* ── Boton ── */
+.boton {
+  width: 100%; font-size: 16px; font-weight: 700; border: none;
+  border-radius: 12px; padding: 15px; cursor: pointer; margin-top: 4px;
 }
-.perfil-titulo { font-size: 18px; font-weight: 600; margin: 0; }
+.boton-primario { background: #00d4ff; color: #0d0d0d; }
+.boton-primario:hover { opacity: 0.85; }
+.boton-secundario { background: transparent; color: #00d4ff; border: 1px solid #00d4ff; }
+.boton-secundario:hover { background: #00d4ff22; }
 
-.btn-icono {
-  background: none; border: none; color: white;
-  font-size: 20px; cursor: pointer; padding: 4px 8px;
-  border-radius: 8px; transition: color 0.2s;
+/* ── Header ── */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; margin-bottom: 24px;
 }
-.btn-icono:hover { color: #00d4ff; }
+.header h1 { font-size: 18px; margin: 0; }
+.header button { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+.header button:hover { color: #00d4ff; }
 
-.perfil-identidad {
-  display: flex; flex-direction: column;
-  align-items: center; margin-bottom: 20px;
+/* ── Perfil ── */
+.avatar {
+  font-size: 48px; width: 80px; height: 80px; border-radius: 50%;
+  border: 2px solid #00d4ff; display: flex; align-items: center;
+  justify-content: center; margin-bottom: 10px;
 }
-.perfil-avatar {
-  font-size: 52px;
-  width: 80px; height: 80px;
-  border-radius: 50%;
-  border: 2px solid #00d4ff;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 10px;
-}
-.perfil-nombre { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
-.perfil-usuario { font-size: 14px; color: #888; margin: 0; }
 
-.perfil-stats {
-  display: flex; gap: 10px;
-  width: 100%; margin-bottom: 16px;
-}
-.perfil-stat {
-  flex: 1; background: #111; border: 1px solid #222;
-  border-radius: 12px; padding: 12px 8px; text-align: center;
-}
-.perfil-stat strong { display: block; font-size: 20px; color: #00d4ff; }
-.perfil-stat p { font-size: 12px; color: #888; margin: 2px 0 0; }
-
-.perfil-card {
-  width: 100%; background: #111; border: 1px solid #222;
-  border-radius: 12px; padding: 14px; margin-bottom: 16px;
-  box-sizing: border-box;
-}
-.perfil-nivel { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
-.xp-barra { background: #222; border-radius: 99px; height: 8px; overflow: hidden; margin-bottom: 6px; }
-.xp-relleno { background: #00d4ff; height: 100%; border-radius: 99px; }
-.xp-texto { font-size: 12px; color: #666; margin: 0; }
-
-.perfil-seccion { width: 100%; margin-bottom: 20px; }
-.perfil-seccion-titulo {
-  font-size: 15px; font-weight: 600;
-  margin: 0 0 10px;
-  display: flex; align-items: center; gap: 6px;
-}
-.badge {
-  background: #1a1a1a; border: 1px solid #333;
-  border-radius: 99px; font-size: 12px; padding: 1px 8px; color: #aaa;
-}
-.perfil-vacio { font-size: 13px; color: #555; margin: 0; padding: 14px 0; }
-
-/* Logros */
-.logro {
-  display: flex; align-items: center; gap: 12px;
+/* Cuadrito reutilizable — card y section comparten el mismo estilo base */
+.card, section {
   background: #111; border: 1px solid #222;
-  border-radius: 12px; padding: 12px 14px;
-  margin-bottom: 8px; opacity: 0.45;
+  border-radius: 12px; padding: 14px;
+  width: 100%; box-sizing: border-box; margin-bottom: 12px;
 }
-.logro-titulo { font-size: 14px; font-weight: 600; margin: 0 0 2px; }
-.logro-desc { font-size: 12px; color: #666; margin: 0; }
+.cyan { border-color: #00d4ff; }
+
+/* Stats: fila de 3 cards */
+.stats { display: flex; gap: 10px; background: none; border: none; padding: 0; margin-bottom: 12px; }
+.stats .card { flex: 1; text-align: center; margin-bottom: 0; }
+.stats .card strong { display: block; font-size: 20px; color: #00d4ff; }
+.stats .card p { font-size: 12px; color: #888; margin: 2px 0 0; }
+
+/* Nivel */
+.nivel > p { font-weight: 600; margin: 0 0 10px; }
+.barra { background: #222; border-radius: 99px; height: 8px; margin-bottom: 6px; }
+.barra div { background: #00d4ff; height: 100%; border-radius: 99px; width: 0%; }
+.nivel small { color: #666; font-size: 12px; }
+
+section h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px; }
+.vacio { color: #555; font-size: 13px; margin: 0; }
+
+/* Logro */
+.logro { display: flex; align-items: center; gap: 12px; opacity: 0.45; }
+.logro p { font-size: 22px; margin: 0; }
+.logro strong { font-size: 14px; display: block; margin-bottom: 2px; }
+.logro div p { font-size: 12px; color: #666; margin: 0; }
