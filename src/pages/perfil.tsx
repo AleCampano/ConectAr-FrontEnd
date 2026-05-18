@@ -11,7 +11,7 @@ function Perfil() {
 
       <Header titulo="Perfil" onVolver={() => navigate(-1)} onAccion={() => {}} />
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20 }}>
+      <div className="perfil-info">
         <div className="avatar">👤</div>
         <strong>AgusA</strong>
         <p>@agusaiello</p>
