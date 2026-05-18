@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import InputTexto from '../components/InputTexto'
 import Boton from '../components/Boton'
-import { buscarDirecciones } from '../ubicacionApi'
 import './pages.css'
 
 const TIPOS = ['#Concierto', '#Deportes', '#Cultura', '#Fiesta']
@@ -18,24 +17,10 @@ function CrearEvento() {
   const navigate = useNavigate()
   const [form, setForm] = useState(INICIAL)
   const [error, setError] = useState('')
-  const [sugerencias, setSugerencias] = useState<any[]>([])
 
   const set = (campo: string) => (valor: any) => {
-    setError('') // limpia el error cuando el usuario edita algo
-    setForm(f => ({ ...f, [campo]: valor }))
-  }
-
-  const buscarDireccion = async (texto: string) => {
-    setForm(f => ({ ...f, ubicacion: texto }))
     setError('')
-    if (texto.length < 3) { setSugerencias([]); return }
-    const data = await buscarDirecciones(texto)
-    setSugerencias(data)
-  }
-
-  const elegirSugerencia = (s: any) => {
-    setForm(f => ({ ...f, ubicacion: s.label }))
-    setSugerencias([])
+    setForm(f => ({ ...f, [campo]: valor }))
   }
 
   const handleImagen = (e: any) => {
@@ -56,18 +41,27 @@ function CrearEvento() {
   }
 
   const camposFaltantes = () => {
-    if (!form.portada)     return 'Falta la imagen de portada'
-    if (!form.titulo)      return 'Falta el título'
-    if (!form.fecha)       return 'Falta la fecha'
-    if (!form.hora)        return 'Falta la hora'
-    if (!form.ubicacion)   return 'Falta la ubicación'
-    if (!form.descripcion) return 'Falta la descripción'
-    if (!form.tipo)        return 'Falta el tipo de evento'
+    if (!form.portada)     return 'Hay campos vacios'
+    if (!form.titulo)      return 'Hay campos vacios'
+    if (!form.fecha)       return 'Hay campos vacios'
+    if (!form.hora)        return 'Hay campos vacios'
+    if (!form.ubicacion)   return 'Hay campos vacios'
+    if (!form.descripcion) return 'Hay campos vacios'
+    if (!form.tipo)        return 'Hay campos vacios'
     return null
   }
 
+  const sumar = () => set('maxPersonas')(form.maxPersonas + 1)
+  const restar = () => set('maxPersonas')(Math.max(0, form.maxPersonas - 1))
+  const labelPersonas = form.maxPersonas === 0 ? 'Sin límite' : form.maxPersonas
   const claseTag = (t: string) => t === form.tipo ? 'tag tag-activo' : 'tag'
   const claseAcceso = (v: string) => v === form.acceso ? 'toggle toggle-activo' : 'toggle'
+  const setAcceso = (v: string) => () => set('acceso')(v)
+  const setTipo = (t: string) => () => set('tipo')(t)
+
+  const hoy = new Date().toISOString().split('T')[0]
+  const ahora = new Date().toTimeString().slice(0, 5)
+  const horaMin = form.fecha === hoy ? ahora : ''
 
   return (
     <div className="pagina">
@@ -91,31 +85,18 @@ function CrearEvento() {
         <div className="seccion">
           <InputTexto placeholder="Título del evento" value={form.titulo} onChange={set('titulo')} />
           <div className="fila-dos">
-            <InputTexto placeholder="Fecha" value={form.fecha} onChange={set('fecha')} type="date" />
-            <InputTexto placeholder="Hora" value={form.hora} onChange={set('hora')} type="time" />
-          </div>
-        </div>
+            <div className="campo">
+              <input type="date" value={form.fecha} min={hoy} onChange={e => set('fecha')(e.target.value)} />
+            </div>
+            <div className="campo">
+              <input type="time" value={form.hora} min={horaMin} onChange={e => set('hora')(e.target.value)} />
+            </div>
+          </div>        </div>
 
         {/* Ubicación */}
         <div className="seccion">
           <p className="seccion-label">Ubicación</p>
-          <div className="campo">
-            <input
-              placeholder="Escribí una dirección..."
-              value={form.ubicacion}
-              onChange={e => buscarDireccion(e.target.value)}
-              autoComplete="off"
-            />
-            {sugerencias.length > 0 && (
-              <div className="sugerencias">
-                {sugerencias.map((s, i) => (
-                  <button key={i} type="button" className="sugerencia" onClick={() => elegirSugerencia(s)}>
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <InputTexto placeholder="Ej: Av. Corrientes 1234, Buenos Aires" value={form.ubicacion} onChange={set('ubicacion')} />
         </div>
 
         {/* Descripción */}
@@ -127,7 +108,7 @@ function CrearEvento() {
               value={form.descripcion}
               onChange={e => set('descripcion')(e.target.value)}
               className="textarea"
-              rows={4}
+              rows={5}
             />
           </div>
         </div>
@@ -137,7 +118,7 @@ function CrearEvento() {
           <p className="seccion-label">Tipo de evento</p>
           <div className="tags">
             {TIPOS.map(t => (
-              <button key={t} type="button" className={claseTag(t)} onClick={() => set('tipo')(t)}>
+              <button key={t} type="button" className={claseTag(t)} onClick={setTipo(t)}>
                 {t}
               </button>
             ))}
@@ -148,9 +129,9 @@ function CrearEvento() {
         <div className="seccion">
           <p className="seccion-label">Máximo de personas</p>
           <div className="contador">
-            <button type="button" onClick={() => set('maxPersonas')(Math.max(0, form.maxPersonas - 1))}>−</button>
-            <span>{form.maxPersonas === 0 ? 'Sin límite' : form.maxPersonas}</span>
-            <button type="button" onClick={() => set('maxPersonas')(form.maxPersonas + 1)}>+</button>
+            <button type="button" onClick={restar}>−</button>
+            <span>{labelPersonas}</span>
+            <button type="button" onClick={sumar}>+</button>
           </div>
         </div>
 
@@ -158,8 +139,8 @@ function CrearEvento() {
         <div className="seccion">
           <p className="seccion-label">Accesibilidad</p>
           <div className="toggle-grupo">
-            <button type="button" className={claseAcceso('publico')} onClick={() => set('acceso')('publico')}>🌐 Público</button>
-            <button type="button" className={claseAcceso('privado')} onClick={() => set('acceso')('privado')}>🔒 Privado</button>
+            <button type="button" className={claseAcceso('publico')} onClick={setAcceso('publico')}>🌐 Público</button>
+            <button type="button" className={claseAcceso('privado')} onClick={setAcceso('privado')}>🔒 Privado</button>
           </div>
         </div>
 

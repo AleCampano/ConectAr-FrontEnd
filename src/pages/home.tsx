@@ -1,9 +1,16 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './pages.css'
 
 function Home() {
   const navigate = useNavigate()
-  const eventos = JSON.parse(localStorage.getItem('eventos') || '[]')
+  const [eventos, setEventos] = useState(JSON.parse(localStorage.getItem('eventos') || '[]'))
+
+  const borrar = (i: number) => {
+    const nuevos = eventos.filter((_: any, idx: number) => idx !== i)
+    localStorage.setItem('eventos', JSON.stringify(nuevos))
+    setEventos(nuevos)
+  }
 
   return (
     <div className="pagina">
@@ -22,9 +29,7 @@ function Home() {
       {eventos.map((ev: any, i: number) => {
         const ciudad = ev.ubicacion?.split(',')[0] ?? ''
         const esPrivado = ev.acceso === 'privado'
-        const mapaUrl = ev.lat
-          ? `https://www.google.com/maps?q=${ev.lat},${ev.lng}`
-          : `https://www.google.com/maps/search/${encodeURIComponent(ev.ubicacion)}`
+        const mapaUrl = `https://www.google.com/maps/search/${encodeURIComponent(ev.ubicacion)}`
 
         return (
           <div key={i} className="card-evento">
@@ -35,7 +40,10 @@ function Home() {
             }
 
             <div className="info-evento">
-              <strong>{ev.titulo}</strong>
+              <div className="info-evento-header">
+                <strong>{ev.titulo}</strong>
+                <button className="btn-borrar" onClick={() => borrar(i)}>🗑</button>
+              </div>
 
               <div className="meta-evento">
                 <span>📅 {ev.fecha} · {ev.hora}</span>
