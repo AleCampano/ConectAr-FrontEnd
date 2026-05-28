@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import './InputPassword.css'
 
 function InputPassword({ placeholder, value, onChange }: any) {
   const [ver, setVer] = useState(false)

@@ -1,0 +1,121 @@
+.pagina {
+  background: #0d0d0d;
+  color: white;
+  min-height: 100svh;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+/* ── Buscador ── */
+.buscador {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.buscador-icono {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  color: #555;
+  pointer-events: none;
+}
+
+.buscador input {
+  width: 100%;
+  background: transparent;
+  border: 1.5px solid #00d4ff;
+  border-radius: 99px;
+  color: white;
+  font-size: 14px;
+  padding: 12px 16px 12px 40px;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.buscador input::placeholder {
+  color: #555;
+}
+
+/* ── Lista ── */
+.participante {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.participante:last-child {
+  border-bottom: none;
+}
+
+.participante-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #1a6a7a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.participante-info {
+  flex: 1;
+}
+
+.participante-info strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.participante-info span {
+  font-size: 13px;
+  color: #888;
+}
+
+/* ── Botones ── */
+.btn-agregar {
+  background: #00d4ff;
+  color: #0d0d0d;
+  border: none;
+  border-radius: 99px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-agregar:hover {
+  opacity: 0.85;
+}
+
+.btn-agregado {
+  background: #2a2a2a;
+  color: #888;
+  border: none;
+  border-radius: 99px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.vacio {
+  color: #555;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 40px;
+}

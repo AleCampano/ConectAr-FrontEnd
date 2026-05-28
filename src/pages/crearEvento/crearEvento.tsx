@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Header from '../components/Header'
-import InputTexto from '../components/InputTexto'
-import Boton from '../components/Boton'
-import './pages.css'
+import Header from '../../components/Header/Header'
+import InputTexto from '../../components/InputTexto/InputTexto'
+import Boton from '../../components/Boton/Boton'
+import './crearEvento.css'
 
 const TIPOS = ['#Concierto', '#Deportes', '#Cultura', '#Fiesta']
 
@@ -36,7 +36,11 @@ function CrearEvento() {
     const msg = camposFaltantes()
     if (msg) { setError(msg); return }
     const eventos = JSON.parse(localStorage.getItem('eventos') || '[]')
-    localStorage.setItem('eventos', JSON.stringify([...eventos, form]))
+    const nuevoEvento = {
+      ...form,
+      participantes: [{ nombre: 'AgusA', usuario: 'agusaiello' }]
+    }
+    localStorage.setItem('eventos', JSON.stringify([...eventos, nuevoEvento]))
     navigate('/home')
   }
 
@@ -91,7 +95,8 @@ function CrearEvento() {
             <div className="campo">
               <input type="time" value={form.hora} min={horaMin} onChange={e => set('hora')(e.target.value)} />
             </div>
-          </div>        </div>
+          </div>
+        </div>
 
         {/* Ubicación */}
         <div className="seccion">

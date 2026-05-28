@@ -1,0 +1,231 @@
+.pagina {
+  background: #0d0d0d;
+  color: white;
+  min-height: 100svh;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+form {
+  width: 100%;
+}
+
+/* ── Secciones del form ── */
+.seccion {
+  margin-bottom: 20px;
+}
+
+.seccion-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0 0 8px;
+}
+
+/* ── Fila doble ── */
+.fila-dos {
+  display: flex;
+  gap: 10px;
+}
+
+.fila-dos .campo {
+  flex: 1;
+}
+
+/* ── Textarea ── */
+.textarea {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  color: white;
+  font-size: 15px;
+  padding: 14px;
+  box-sizing: border-box;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+}
+
+.textarea:focus {
+  border-color: #00d4ff;
+}
+
+.textarea::placeholder {
+  color: #555;
+}
+
+/* ── Tags ── */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.tag {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  color: white;
+  border-radius: 99px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tag-activo {
+  border-color: #00d4ff;
+  color: #00d4ff;
+}
+
+/* ── Toggle acceso ── */
+.toggle-grupo {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.toggle {
+  flex: 1;
+  padding: 10px;
+  border-radius: 99px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #444;
+  background: transparent;
+  color: white;
+}
+
+.toggle-activo {
+  background: #00d4ff;
+  color: #0d0d0d;
+  border-color: #00d4ff;
+}
+
+/* ── Subir imagen ── */
+.subir-imagen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 200px;
+  border-radius: 16px;
+  border: 2px dashed #333;
+  background: #141414;
+  cursor: pointer;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.subir-imagen:hover {
+  border-color: #00d4ff;
+}
+
+.subir-imagen-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #555;
+}
+
+.subir-imagen-icono {
+  font-size: 32px;
+}
+
+.subir-imagen-placeholder span:last-child {
+  font-size: 14px;
+}
+
+.portada-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Contador ── */
+.contador {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 4px;
+}
+
+.contador span {
+  font-size: 18px;
+  font-weight: 600;
+  flex: 1;
+  text-align: center;
+}
+
+.contador button {
+  background: #2a2a2a;
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.contador button:hover {
+  background: #00d4ff;
+  color: #0d0d0d;
+}
+
+/* ── Validación ── */
+.error-form {
+  color: #ff4d4d;
+  font-size: 13px;
+  text-align: center;
+  background: #ff4d4d18;
+  border: 1px solid #ff4d4d44;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+/* ── Autocompletado ubicación ── */
+.sugerencias {
+  width: 100%;
+  z-index: 10;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.sugerencia {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #ccc;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #2a2a2a;
+  cursor: pointer;
+}
+
+.sugerencia:last-child {
+  border-bottom: none;
+}
+
+.sugerencia:hover {
+  background: #2a2a2a;
+  color: white;
+}

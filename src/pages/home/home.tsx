@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import './pages.css'
+import './home.css'
 
 function Home() {
   const navigate = useNavigate()
@@ -48,7 +48,14 @@ function Home() {
               <div className="meta-evento">
                 <span>📅 {ev.fecha} · {ev.hora}</span>
                 {ciudad && <a href={mapaUrl} target="_blank" className="link-mapa">📍 {ciudad}</a>}
-                {ev.maxPersonas > 0 && <span>👥 1/{ev.maxPersonas} personas</span>}
+                {ev.maxPersonas > 0 && (
+                  <span
+                    className="link-participantes"
+                    onClick={() => navigate(`/participantes/${i}`)}
+                  >
+                    👥 1/{ev.maxPersonas} personas
+                  </span>
+                )}
               </div>
 
               <div className="footer-evento">

@@ -1,0 +1,36 @@
+.pagina {
+  background: #0d0d0d;
+  color: white;
+  min-height: 100svh;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+.centrada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  width: 190px;
+  margin-bottom: 32px;
+}
+
+form {
+  width: 100%;
+}
+
+.pie {
+  color: #666;
+  font-size: 14px;
+  margin-top: 20px;
+}
+
+.pie a {
+  color: #00d4ff;
+}

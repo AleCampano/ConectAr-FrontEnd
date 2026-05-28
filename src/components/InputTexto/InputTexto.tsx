@@ -1,3 +1,5 @@
+import './InputTexto.css'
+
 function InputTexto({ placeholder, value, onChange, type = 'text' }: any) {
   return (
     <div className="campo">

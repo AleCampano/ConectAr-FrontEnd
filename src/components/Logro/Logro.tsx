@@ -1,3 +1,5 @@
+import './Logro.css'
+
 function Logro({ icono, titulo, desc, desbloqueado = false }: any) {
   return (
     <div className={`logro ${desbloqueado ? 'desbloqueado' : ''}`}>

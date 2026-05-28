@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import Header from '../components/Header'
-import Logro from '../components/Logro'
-import './pages.css'
+import Header from '../../components/Header/Header'
+import Logro from '../../components/Logro/Logro'
+import './perfil.css'
 
 function Perfil() {
   const navigate = useNavigate()

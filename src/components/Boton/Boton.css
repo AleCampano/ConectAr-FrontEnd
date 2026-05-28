@@ -1,0 +1,29 @@
+.boton {
+  width: 100%;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  padding: 15px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.boton-primario {
+  background: #00d4ff;
+  color: #0d0d0d;
+}
+
+.boton-primario:hover {
+  opacity: 0.85;
+}
+
+.boton-secundario {
+  background: transparent;
+  color: #00d4ff;
+  border: 1px solid #00d4ff;
+}
+
+.boton-secundario:hover {
+  background: #00d4ff22;
+}

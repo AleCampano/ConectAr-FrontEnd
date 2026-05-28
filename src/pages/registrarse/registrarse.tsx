@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import InputTexto from '../components/InputTexto'
-import InputPassword from '../components/InputPassword'
-import Boton from '../components/Boton'
-import logo from '../assets/logo.png'
-import './pages.css'
+import InputTexto from '../../components/InputTexto/InputTexto'
+import InputPassword from '../../components/InputPassword/InputPassword'
+import Boton from '../../components/Boton/Boton'
+import logo from '../../assets/logo.png'
+import './registrarse.css'
 
 function Registrarse() {
   const [usuario, setUsuario] = useState('')

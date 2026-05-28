@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Registrarse from './pages/registrarse'
-import Home from './pages/home'
-import Perfil from './pages/perfil'
-import CrearEvento from './pages/crearEvento'
-import Explorar from './pages/explorar'
-import VerParticipantes from './pages/verParticipantes'
+import Registrarse from './pages/registrarse/registrarse'
+import Home from './pages/home/home'
+import Perfil from './pages/perfil/perfil'
+import CrearEvento from './pages/crearEvento/crearEvento'
+import Explorar from './pages/explorar/explorar'
+import VerParticipantes from './pages/verParticipantes/verParticipantes'
 
 function App() {
   return (

@@ -1,3 +1,5 @@
+import './Header.css'
+
 function Header({ titulo, onVolver, onAccion, iconoAccion = '↪' }: any) {
   return (
     <div className="header">
