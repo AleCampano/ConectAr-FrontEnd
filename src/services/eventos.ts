@@ -9,3 +9,15 @@ export async function obtenerEvento(id: number) {
 
   return null
 }
+
+export async function listarEventos() {
+  console.log('Listar eventos')
+
+  return []
+}
+
+export async function listarPersonas() {
+  console.log('Listar personas')
+
+  return []
+}
