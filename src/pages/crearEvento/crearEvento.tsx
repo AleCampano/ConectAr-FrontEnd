@@ -4,13 +4,20 @@ import Header from '../../components/Header/Header'
 import InputTexto from '../../components/InputTexto/InputTexto'
 import Boton from '../../components/Boton/Boton'
 import './crearEvento.css'
+import { crearEvento } from '../../services/eventos'
 
 const TIPOS = ['#Concierto', '#Deportes', '#Cultura', '#Fiesta']
 
 const INICIAL = {
-  titulo: '', fecha: '', hora: '', ubicacion: '',
-  descripcion: '', tipo: '', maxPersonas: 0,
-  acceso: 'privado', portada: ''
+  titulo: '', 
+  fecha: '', 
+  hora: '', 
+  ubicacion: '',
+  descripcion: '',
+   tipo: '', 
+   maxPersonas: 0,
+  acceso: 'privado', 
+  portada: ''
 }
 
 function CrearEvento() {
@@ -31,18 +38,30 @@ function CrearEvento() {
     reader.readAsDataURL(archivo)
   }
 
-  const handleSubmit = (e: any) => {
-    e.preventDefault()
-    const msg = camposFaltantes()
-    if (msg) { setError(msg); return }
-    const eventos = JSON.parse(localStorage.getItem('eventos') || '[]')
-    const nuevoEvento = {
-      ...form,
-      participantes: [{ nombre: 'AgusA', usuario: 'agusaiello' }]
-    }
-    localStorage.setItem('eventos', JSON.stringify([...eventos, nuevoEvento]))
-    navigate('/home')
+  const handleSubmit = async (e: any) => {
+  e.preventDefault()
+
+  const msg = camposFaltantes()
+
+  if (msg) {
+    setError(msg)
+    return
   }
+
+  const nuevoEvento = {
+    ...form,
+    participantes: [
+      {
+        nombre: 'AgusA',
+        usuario: 'agusaiello'
+      }
+    ]
+  }
+
+  await crearEvento(nuevoEvento)
+
+  navigate('/home')
+}
 
   const camposFaltantes = () => {
     if (!form.portada)     return 'Hay campos vacios'

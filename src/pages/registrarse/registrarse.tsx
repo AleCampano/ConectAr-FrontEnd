@@ -5,17 +5,22 @@ import InputPassword from '../../components/InputPassword/InputPassword'
 import Boton from '../../components/Boton/Boton'
 import logo from '../../assets/logo.png'
 import './registrarse.css'
+import { registrarse } from '../../services/auth'
 
 function Registrarse() {
   const [usuario, setUsuario] = useState('')
   const [correo, setCorreo] = useState('')
   const [contrasena, setContrasena] = useState('')
 
-  function enviar(e: React.FormEvent) {
-    e.preventDefault()
-    console.log({ usuario, correo, contrasena })
-  }
+  async function enviar(e: React.FormEvent) {
+  e.preventDefault()
 
+  await registrarse({
+    usuario,
+    correo,
+    contrasena
+  })
+}
   return (
     <div className="pagina centrada">
       <img src={logo} alt="ConectAr" className="logo" />
