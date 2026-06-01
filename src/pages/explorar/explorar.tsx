@@ -1,8 +1,8 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header/Header'
+import { listarEventos } from '../../services/eventos'
 import './explorar.css'
-import { useEffect, useState } from 'react'
-import { listarEventos, listarPersonas } from '../../services/eventos'
 
 const TABS = ['Todos', 'Eventos', 'Personas']
 const TENDENCIAS = ['Fútbol', 'Música', 'Previas', 'Estudio', 'Cultura']
@@ -19,10 +19,8 @@ const [personas, setPersonas] = useState<any[]>([])
 useEffect(() => {
   async function cargarDatos() {
     const eventosData = await listarEventos()
-    const personasData = await listarPersonas()
 
     setEventos(eventosData)
-    setPersonas(personasData)
   }
 
   cargarDatos()
@@ -30,10 +28,10 @@ useEffect(() => {
 
   const eventosFiltrados = eventos.filter(ev => {
     const coincideBusqueda =
-      ev.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
-      ev.descripcion.toLowerCase().includes(busqueda.toLowerCase())
+      ev.title.toLowerCase().includes(busqueda.toLowerCase()) ||
+      ev.description.toLowerCase().includes(busqueda.toLowerCase())
     const coincideTendencia =
-      !tendencia || ev.tags.some((t: string) => t.toLowerCase().includes(tendencia.toLowerCase()))
+      !tendencia || ev.event_type.toLowerCase().includes(tendencia.toLowerCase())
     return coincideBusqueda && coincideTendencia
   })
 
@@ -88,7 +86,7 @@ useEffect(() => {
                 className={tendencia === t ? 'tag tag-activo' : 'tag'}
                 onClick={() => seleccionarTendencia(t)}
               >
-                {t}
+                {t} 
               </button>
             ))}
           </div>
@@ -106,19 +104,13 @@ useEffect(() => {
             ? <p className="vacio">No hay eventos todavía.</p>
             : eventosFiltrados.map(ev => (
                 <div key={ev.id} className="card-evento">
-                  <div className="card-creador">
-                    <div className="avatar-chico">👤</div>
-                    <strong>{ev.creador.nombre}</strong>
-                  </div>
-                  <h2 className="card-titulo">{ev.titulo}</h2>
-                  <p className="card-desc">{ev.descripcion}</p>
-                  {ev.portada && (
-                    <img src={ev.portada} alt="portada" className="card-portada" />
+                  <h2 className="card-titulo">{ev.title}</h2>
+                  <p className="card-desc">{ev.description}</p>
+                  {ev.image_url && (
+                    <img src={ev.image_url} alt="portada" className="card-portada" />
                   )}
                   <div className="card-tags">
-                    {ev.tags.map((tag: string) => (
-                      <span key={tag} className="tag tag-activo">{tag}</span>
-                    ))}
+                    <span className="tag tag-activo">#{ev.event_type}</span>
                   </div>
                 </div>
               ))

@@ -49,13 +49,14 @@ function CrearEvento() {
   }
 
   const nuevoEvento = {
-    ...form,
-    participantes: [
-      {
-        nombre: 'AgusA',
-        usuario: 'agusaiello'
-      }
-    ]
+    title: form.titulo,
+    description: form.descripcion,
+    location: form.ubicacion,
+    event_date: `${form.fecha}T${form.hora}:00`,
+    event_type: form.tipo.replace('#', '').toLowerCase(),
+    accessibility: form.acceso,
+    max_participants: form.maxPersonas === 0 ? null : form.maxPersonas,
+    image_url: form.portada || null
   }
 
   await crearEvento(nuevoEvento)

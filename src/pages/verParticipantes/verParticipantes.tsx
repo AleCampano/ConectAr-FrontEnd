@@ -1,38 +1,31 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import Header from "../../components/Header/Header"
+import { listarPersonas } from "../../services/eventos"
 import "./verParticipantes.css"
 
 function VerParticipantes() {
   const navigate = useNavigate()
   const { id } = useParams()
 
-  const eventos = JSON.parse(localStorage.getItem("eventos") || "[]")
-  const evento = eventos[Number(id)]
-
+  const [participantes, setParticipantes] = useState<any[]>([])
   const [busqueda, setBusqueda] = useState("")
   const [agregados, setAgregados] = useState<string[]>([])
 
-  if (!evento) {
-    return (
-      <div className="pagina">
-        <Header titulo="Participantes" onVolver={() => navigate(-1)} />
-        <p className="vacio">Evento no encontrado.</p>
-      </div>
-    )
-  }
+  useEffect(() => {
+    if (id) {
+      listarPersonas(id).then(setParticipantes)
+    }
+  }, [id])
 
-  const participantes = evento.participantes || []
-
-  const participantesFiltrados = participantes.filter((participante: any) =>
-    participante.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  const participantesFiltrados = participantes.filter((p: any) =>
+    p.username?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.full_name?.toLowerCase().includes(busqueda.toLowerCase())
   )
 
   const agregarUsuario = (usuario: string) => {
     if (agregados.includes(usuario)) {
-      setAgregados(
-        agregados.filter((u) => u !== usuario)
-      )
+      setAgregados(agregados.filter((u) => u !== usuario))
     } else {
       setAgregados([...agregados, usuario])
     }
@@ -44,7 +37,6 @@ function VerParticipantes() {
 
       <div className="buscador">
         <span className="buscador-icono">🔍</span>
-
         <input
           type="text"
           placeholder="Buscar participante..."
@@ -53,36 +45,25 @@ function VerParticipantes() {
         />
       </div>
 
+      {participantesFiltrados.length === 0 && (
+        <p className="vacio">No hay participantes todavía.</p>
+      )}
+
       {participantesFiltrados.map((participante: any) => (
-        <div
-          key={participante.usuario}
-          className="participante"
-        >
-          <div className="participante-avatar">
-            👤
-          </div>
+        <div key={participante.id} className="participante">
+          <div className="participante-avatar">👤</div>
 
           <div className="participante-info">
-            <strong>{participante.nombre}</strong>
-            <span>@{participante.usuario}</span>
+            <strong>{participante.full_name}</strong>
+            <span>@{participante.username}</span>
           </div>
 
-          {agregados.includes(participante.usuario) ? (
-            <button
-              className="btn-agregado"
-              onClick={() =>
-                agregarUsuario(participante.usuario)
-              }
-            >
+          {agregados.includes(participante.username) ? (
+            <button className="btn-agregado" onClick={() => agregarUsuario(participante.username)}>
               Agregado
             </button>
           ) : (
-            <button
-              className="btn-agregar"
-              onClick={() =>
-                agregarUsuario(participante.usuario)
-              }
-            >
+            <button className="btn-agregar" onClick={() => agregarUsuario(participante.username)}>
               👤+ Agregar
             </button>
           )}

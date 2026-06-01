@@ -1,16 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { listarEventos } from '../../services/eventos'
 import './home.css'
 
 function Home() {
   const navigate = useNavigate()
-  const [eventos, setEventos] = useState(JSON.parse(localStorage.getItem('eventos') || '[]'))
+  const [eventos, setEventos] = useState<any[]>([])
 
-  const borrar = (i: number) => {
-    const nuevos = eventos.filter((_: any, idx: number) => idx !== i)
-    localStorage.setItem('eventos', JSON.stringify(nuevos))
-    setEventos(nuevos)
-  }
+  useEffect(() => {
+    listarEventos().then(setEventos)
+  }, [])
 
   return (
     <div className="pagina">
@@ -26,40 +25,39 @@ function Home() {
 
       {eventos.length === 0 && <p className="vacio">Todavía no hay eventos. ¡Creá el primero!</p>}
 
-      {eventos.map((ev: any, i: number) => {
-        const ciudad = ev.ubicacion?.split(',')[0] ?? ''
-        const esPrivado = ev.acceso === 'privado'
-        const mapaUrl = `https://www.google.com/maps/search/${encodeURIComponent(ev.ubicacion)}`
+      {eventos.map((ev: any) => {
+        const ciudad = ev.location?.split(',')[0] ?? ''
+        const esPrivado = ev.accessibility === 'privado'
+        const mapaUrl = `https://www.google.com/maps/search/${encodeURIComponent(ev.location)}`
 
         return (
-          <div key={i} className="card-evento">
+          <div key={ev.id} className="card-evento">
 
-            {ev.portada
-              ? <img src={ev.portada} alt="portada" className="img-evento" />
+            {ev.image_url
+              ? <img src={ev.image_url} alt="portada" className="img-evento" />
               : <div className="img-evento-vacia">📅</div>
             }
 
             <div className="info-evento">
               <div className="info-evento-header">
-                <strong>{ev.titulo}</strong>
-                <button className="btn-borrar" onClick={() => borrar(i)}>🗑</button>
+                <strong>{ev.title}</strong>
               </div>
 
               <div className="meta-evento">
-                <span>📅 {ev.fecha} · {ev.hora}</span>
+                <span>📅 {ev.event_date?.split('T')[0]} · {ev.event_date?.split('T')[1]?.slice(0,5)}</span>
                 {ciudad && <a href={mapaUrl} target="_blank" className="link-mapa">📍 {ciudad}</a>}
-                {ev.maxPersonas > 0 && (
+                {ev.max_participants > 0 && (
                   <span
                     className="link-participantes"
-                    onClick={() => navigate(`/participantes/${i}`)}
+                    onClick={() => navigate(`/participantes/${ev.id}`)}
                   >
-                    👥 1/{ev.maxPersonas} personas
+                    👥 {ev.max_participants} personas máx.
                   </span>
                 )}
               </div>
 
               <div className="footer-evento">
-                {ev.tipo && <span className="tag tag-activo">{ev.tipo}</span>}
+                {ev.event_type && <span className="tag tag-activo">#{ev.event_type}</span>}
                 <span className={esPrivado ? 'badge privado' : 'badge publico'}>
                   {esPrivado ? '🔒 Privado' : '🌐 Público'}
                 </span>
