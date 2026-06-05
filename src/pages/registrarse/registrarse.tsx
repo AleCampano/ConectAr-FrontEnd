@@ -20,8 +20,11 @@ function Registrarse() {
     setError('')
     try {
       const data = await registrarse({ nombreCompleto, usuario, correo, contrasena })
-      localStorage.setItem('token', data.session.access_token)
-      localStorage.setItem('usuario', JSON.stringify(data.user))
+      // El registro no devuelve token, solo confirmamos que existe el user
+      if (data?.user?.id) {
+        localStorage.setItem('user_id', data.user.id)
+        localStorage.setItem('usuario', JSON.stringify(data.user))
+      }
       navigate('/home')
     } catch {
       setError('No se pudo registrar. Intentá con otros datos.')

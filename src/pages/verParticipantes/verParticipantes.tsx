@@ -12,22 +12,28 @@ function VerParticipantes() {
   const [busqueda, setBusqueda] = useState("")
   const [agregados, setAgregados] = useState<string[]>([])
 
+  const miId = localStorage.getItem('user_id')
+
   useEffect(() => {
     if (id) {
-      listarPersonas(id).then(setParticipantes)
+      listarPersonas(id).then(setParticipantes).catch(console.error)
     }
   }, [id])
 
-  const participantesFiltrados = participantes.filter((p: any) =>
-    p.username?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.full_name?.toLowerCase().includes(busqueda.toLowerCase())
-  )
+  // La respuesta del back tiene la info del usuario dentro de .users
+  const participantesFiltrados = participantes.filter((p: any) => {
+    const user = p.users || p
+    return (
+      user.username?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      user.full_name?.toLowerCase().includes(busqueda.toLowerCase())
+    )
+  })
 
-  const agregarUsuario = (usuario: string) => {
-    if (agregados.includes(usuario)) {
-      setAgregados(agregados.filter((u) => u !== usuario))
+  const agregarUsuario = (userId: string) => {
+    if (agregados.includes(userId)) {
+      setAgregados(agregados.filter((u) => u !== userId))
     } else {
-      setAgregados([...agregados, usuario])
+      setAgregados([...agregados, userId])
     }
   }
 
@@ -49,26 +55,35 @@ function VerParticipantes() {
         <p className="vacio">No hay participantes todavía.</p>
       )}
 
-      {participantesFiltrados.map((participante: any) => (
-        <div key={participante.id} className="participante">
-          <div className="participante-avatar">👤</div>
+      {participantesFiltrados.map((participante: any) => {
+        const user = participante.users || participante
+        const esYo = participante.user_id === miId || user.id === miId
+        return (
+          <div key={participante.user_id || user.id} className="participante">
+            {user.avatar_url
+              ? <img src={user.avatar_url} alt="avatar" className="participante-avatar" />
+              : <div className="participante-avatar">👤</div>
+            }
 
-          <div className="participante-info">
-            <strong>{participante.full_name}</strong>
-            <span>@{participante.username}</span>
+            <div className="participante-info">
+              <strong>{user.full_name}</strong>
+              <span>@{user.username}</span>
+            </div>
+
+            {!esYo && (
+              agregados.includes(user.id) ? (
+                <button className="btn-agregado" onClick={() => agregarUsuario(user.id)}>
+                  Agregado
+                </button>
+              ) : (
+                <button className="btn-agregar" onClick={() => agregarUsuario(user.id)}>
+                  👤+ Agregar
+                </button>
+              )
+            )}
           </div>
-
-          {agregados.includes(participante.username) ? (
-            <button className="btn-agregado" onClick={() => agregarUsuario(participante.username)}>
-              Agregado
-            </button>
-          ) : (
-            <button className="btn-agregar" onClick={() => agregarUsuario(participante.username)}>
-              👤+ Agregar
-            </button>
-          )}
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

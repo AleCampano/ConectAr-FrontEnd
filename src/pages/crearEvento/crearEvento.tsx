@@ -67,7 +67,6 @@ creator_id: localStorage.getItem('user_id') || '9f2e6891-3fe9-49eb-a796-40a9e7e8
 }
 
   const camposFaltantes = () => {
-    if (!form.portada)     return 'Hay campos vacios'
     if (!form.titulo)      return 'Hay campos vacios'
     if (!form.fecha)       return 'Hay campos vacios'
     if (!form.hora)        return 'Hay campos vacios'

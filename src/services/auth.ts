@@ -25,9 +25,12 @@ export async function login(datos: any) {
     })
   })
   if (!res.ok) throw new Error('Error al iniciar sesión')
-  const data = await res.json()                          // ← esto, no await login()
+  const data = await res.json()
+  // El token viene en access_token, el username no está en la respuesta del login
   localStorage.setItem('user_id', data.user.id)
   localStorage.setItem('access_token', data.access_token)
+  // Guardamos lo que tenemos del login (sin username todavía)
+  localStorage.setItem('usuario', JSON.stringify(data.user))
   return data
 }
 

@@ -1,21 +1,52 @@
+  import { useEffect, useState } from 'react'
   import { useNavigate } from 'react-router-dom'
   import Header from '../../components/Header/Header'
   import Logro from '../../components/Logro/Logro'
+  import { obtenerPerfil } from '../../services/auth'
   import './perfil.css'
 
   function Perfil() {
     const navigate = useNavigate()
 
-    const usuario = {
-      nombre: 'Alejo',
-      username: 'ale',
+    const [usuario, setUsuario] = useState({
+      nombre: '',
+      username: '',
       asistidos: 0,
       creados: 0,
       amigos: 0,
       nivel: 1,
       xpFaltante: 100,
-      intereses: []
-    }
+      intereses: [] as string[]
+    })
+
+    useEffect(() => {
+      const userId = localStorage.getItem('user_id')
+      const usuarioGuardado = JSON.parse(localStorage.getItem('usuario') || '{}')
+
+      // Cargamos lo que ya tenemos mientras hacemos el fetch
+      setUsuario(prev => ({
+        ...prev,
+        nombre: usuarioGuardado.full_name || '',
+        username: usuarioGuardado.username || ''
+      }))
+
+      // Si hay id, buscamos el perfil completo para obtener el username
+      if (userId) {
+        obtenerPerfil(userId)
+          .then(data => {
+            setUsuario(prev => ({
+              ...prev,
+              nombre: data.full_name || usuarioGuardado.full_name || '',
+              username: data.username || usuarioGuardado.username || ''
+            }))
+            // Actualizamos el localStorage con los datos completos
+            localStorage.setItem('usuario', JSON.stringify({ ...usuarioGuardado, ...data }))
+          })
+          .catch(() => {
+            // Si falla el fetch, usamos lo que hay en localStorage
+          })
+      }
+    }, [])
 
 
     return (
