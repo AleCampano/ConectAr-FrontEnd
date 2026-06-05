@@ -25,7 +25,10 @@ export async function login(datos: any) {
     })
   })
   if (!res.ok) throw new Error('Error al iniciar sesión')
-  return res.json()
+  const data = await res.json()                          // ← esto, no await login()
+  localStorage.setItem('user_id', data.user.id)
+  localStorage.setItem('access_token', data.access_token)
+  return data
 }
 
 export async function obtenerPerfil(id: string) {

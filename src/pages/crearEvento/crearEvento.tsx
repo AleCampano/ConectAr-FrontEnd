@@ -48,16 +48,18 @@ function CrearEvento() {
     return
   }
 
-  const nuevoEvento = {
-    title: form.titulo,
-    description: form.descripcion,
-    location: form.ubicacion,
-    event_date: `${form.fecha}T${form.hora}:00`,
-    event_type: form.tipo.replace('#', '').toLowerCase(),
-    accessibility: form.acceso,
-    max_participants: form.maxPersonas === 0 ? null : form.maxPersonas,
-    image_url: form.portada || null
-  }
+const nuevoEvento = {
+creator_id: localStorage.getItem('user_id') || '9f2e6891-3fe9-49eb-a796-40a9e7e88421',
+  title: form.titulo,
+  description: form.descripcion,
+  location: form.ubicacion,
+  event_date: `${form.fecha}T${form.hora}:00`,
+  event_type: form.tipo.replace('#', '').toLowerCase(),
+  accessibility: form.acceso,
+  max_participants: form.maxPersonas === 0 ? null : form.maxPersonas,
+  image_url: form.portada || null
+}
+
 
   await crearEvento(nuevoEvento)
 
