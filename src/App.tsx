@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Registrarse from './pages/registrarse/registrarse'
+import Login from './pages/login/login'
 import Home from './pages/home/home'
 import Perfil from './pages/perfil/perfil'
 import CrearEvento from './pages/crearEvento/crearEvento'
@@ -11,6 +12,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Registrarse />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/explorar" element={<Explorar />} />

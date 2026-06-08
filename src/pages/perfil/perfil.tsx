@@ -8,6 +8,8 @@ import './perfil.css'
 function Perfil() {
   const navigate = useNavigate()
 
+  const [mostrarConfirmLogout, setMostrarConfirmLogout] = useState(false)
+
   const [usuario, setUsuario] = useState({
     nombre: '',
     username: '',
@@ -44,6 +46,13 @@ function Perfil() {
     }
   }, [])
 
+  function cerrarSesion() {
+    localStorage.removeItem('user_id')
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('usuario')
+    navigate('/login')
+  }
+
   const inicialAvatar = usuario.nombre
     ? usuario.nombre.charAt(0).toLowerCase()
     : '?'
@@ -54,6 +63,16 @@ function Perfil() {
       <Header
         titulo="Perfil"
         onVolver={() => navigate(-1)}
+        onAccion={() => {/* editar perfil */}}
+        iconoAccion="✏️"
+        onAccion2={() => setMostrarConfirmLogout(true)}
+        iconoAccion2={
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        }
       />
 
       {/* Avatar + nombre */}
@@ -143,6 +162,24 @@ function Perfil() {
             desc="Conecta con 50 personas"
           />
         </section>
+
+      {/* Modal confirmación logout */}
+      {mostrarConfirmLogout && (
+        <div className="modal-overlay" onClick={() => setMostrarConfirmLogout(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <p className="modal-titulo">¿Cerrar sesión?</p>
+            <p className="modal-desc">¿Estás seguro que querés cerrar sesión?</p>
+            <div className="modal-acciones">
+              <button className="modal-btn cancelar" onClick={() => setMostrarConfirmLogout(false)}>
+                Cancelar
+              </button>
+              <button className="modal-btn confirmar" onClick={cerrarSesion}>
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       </div>
     )

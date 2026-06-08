@@ -316,3 +316,68 @@ section h2 {
   font-size: 12px;
   color: #666;
 }
+
+/* ── Modal logout ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal {
+  background: #161616;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.modal-titulo {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: white;
+}
+
+.modal-desc {
+  font-size: 14px;
+  color: #888;
+  margin: 0 0 24px;
+}
+
+.modal-acciones {
+  display: flex;
+  gap: 12px;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.modal-btn:hover {
+  opacity: 0.85;
+}
+
+.modal-btn.cancelar {
+  background: #2a2a2a;
+  color: #aaa;
+}
+
+.modal-btn.confirmar {
+  background: #00d4ff;
+  color: #000;
+}

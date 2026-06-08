@@ -1,0 +1,55 @@
+.pagina {
+  background: #0d0d0d;
+  color: white;
+  min-height: 100svh;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+.centrada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  width: 190px;
+  margin-bottom: 32px;
+}
+
+form {
+  width: 100%;
+}
+
+.olvidaste {
+  text-align: center;
+  margin: 8px 0 16px;
+  font-size: 14px;
+}
+
+.olvidaste a {
+  color: #aaa;
+  text-decoration: underline;
+}
+
+.pie {
+  color: #666;
+  font-size: 14px;
+  margin-top: 20px;
+}
+
+.pie a {
+  color: #00d4ff;
+  text-decoration: underline;
+}
+
+.error-form {
+  color: #ff4d4d;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 8px;
+}

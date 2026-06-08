@@ -311,3 +311,49 @@
   background: #00d4ff;
   color: #0d0d0d;
 }
+
+/* ── Buscador limpiar ── */
+.buscador-limpiar {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 4px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.buscador-limpiar:hover {
+  color: #aaa;
+}
+
+/* ── Hint búsqueda personas ── */
+.personas-hint {
+  text-align: center;
+  padding: 32px 0;
+}
+
+/* ── Botón buscar personas ── */
+.btn-buscar-personas {
+  width: 100%;
+  background: #00d4ff;
+  color: #0d0d0d;
+  border: none;
+  border-radius: 99px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-buscar-personas:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.btn-buscar-personas:disabled {
+  background: #1a1a1a;
+  color: #555;
+  cursor: not-allowed;
+}

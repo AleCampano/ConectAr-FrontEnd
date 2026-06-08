@@ -13,7 +13,6 @@ function Explorar() {
   const [busqueda, setBusqueda] = useState('')
   const [tendencia, setTendencia] = useState('')
   const [eventos, setEventos] = useState<any[]>([])
-  const [personas] = useState<any[]>([])
   const [eventosUnidos, setEventosUnidos] = useState<string[]>([])
 
   const userId = localStorage.getItem('user_id')
@@ -22,7 +21,6 @@ function Explorar() {
     listarEventos()
       .then(async (data) => {
         setEventos(data)
-        // Para cada evento, traemos los participantes y chequeamos si ya estamos unidos
         const unidos: string[] = []
         await Promise.all(
           data.map(async (ev: any) => {
@@ -33,7 +31,7 @@ function Explorar() {
               )
               if (yaUnido) unidos.push(ev.id)
             } catch {
-              // si falla ignoramos ese evento
+              // ignoramos si falla
             }
           })
         )
@@ -50,11 +48,6 @@ function Explorar() {
       !tendencia || ev.event_type.toLowerCase().includes(tendencia.toLowerCase())
     return coincideBusqueda && coincideTendencia
   })
-
-  const personasFiltradas = personas.filter(p =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.usuario.toLowerCase().includes(busqueda.toLowerCase())
-  )
 
   const seleccionarTendencia = (t: string) => {
     setTendencia(prev => (prev === t ? '' : t))
@@ -204,19 +197,7 @@ function Explorar() {
       {mostrarPersonas && (
         <div className="lista">
           {tab !== 'Todos' && <p className="seccion-label">Personas</p>}
-          {personasFiltradas.length === 0
-            ? <p className="vacio">No hay personas todavía.</p>
-            : personasFiltradas.map(p => (
-                <div key={p.id} className="card-persona">
-                  <div className="avatar-chico">👤</div>
-                  <div className="persona-info">
-                    <strong>{p.nombre}</strong>
-                    <span>@{p.usuario}</span>
-                  </div>
-                  <button className="btn-agregar">👤+ Agregar</button>
-                </div>
-              ))
-          }
+          <p className="vacio">No hay personas todavía.</p>
         </div>
       )}
     </div>
