@@ -1,132 +1,143 @@
-  import { useEffect, useState } from 'react'
-  import { useNavigate } from 'react-router-dom'
-  import Header from '../../components/Header/Header'
-  import Logro from '../../components/Logro/Logro'
-  import { obtenerPerfil } from '../../services/auth'
-  import './perfil.css'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import Header from '../../components/Header/Header'
+import Logro from '../../components/Logro/Logro'
+import { obtenerPerfil } from '../../services/auth'
+import './perfil.css'
 
-  function Perfil() {
-    const navigate = useNavigate()
+function Perfil() {
+  const navigate = useNavigate()
 
-    const [usuario, setUsuario] = useState({
-      nombre: '',
-      username: '',
-      asistidos: 0,
-      creados: 0,
-      amigos: 0,
-      nivel: 1,
-      xpFaltante: 100,
-      intereses: [] as string[]
-    })
+  const [usuario, setUsuario] = useState({
+    nombre: '',
+    username: '',
+    asistidos: 0,
+    creados: 0,
+    amigos: 0,
+    nivel: 1,
+    xp: 0,
+    xpFaltante: 200,
+    intereses: [] as string[]
+  })
 
-    useEffect(() => {
-      const userId = localStorage.getItem('user_id')
-      const usuarioGuardado = JSON.parse(localStorage.getItem('usuario') || '{}')
+  useEffect(() => {
+    const userId = localStorage.getItem('user_id')
+    const usuarioGuardado = JSON.parse(localStorage.getItem('usuario') || '{}')
 
-      // Cargamos lo que ya tenemos mientras hacemos el fetch
-      setUsuario(prev => ({
-        ...prev,
-        nombre: usuarioGuardado.full_name || '',
-        username: usuarioGuardado.username || ''
-      }))
+    setUsuario(prev => ({
+      ...prev,
+      nombre: usuarioGuardado.full_name || '',
+      username: usuarioGuardado.username || ''
+    }))
 
-      // Si hay id, buscamos el perfil completo para obtener el username
-      if (userId) {
-        obtenerPerfil(userId)
-          .then(data => {
-            setUsuario(prev => ({
-              ...prev,
-              nombre: data.full_name || usuarioGuardado.full_name || '',
-              username: data.username || usuarioGuardado.username || ''
-            }))
-            // Actualizamos el localStorage con los datos completos
-            localStorage.setItem('usuario', JSON.stringify({ ...usuarioGuardado, ...data }))
-          })
-          .catch(() => {
-            // Si falla el fetch, usamos lo que hay en localStorage
-          })
-      }
-    }, [])
+    if (userId) {
+      obtenerPerfil(userId)
+        .then(data => {
+          setUsuario(prev => ({
+            ...prev,
+            nombre: data.full_name || usuarioGuardado.full_name || '',
+            username: data.username || usuarioGuardado.username || ''
+          }))
+          localStorage.setItem('usuario', JSON.stringify({ ...usuarioGuardado, ...data }))
+        })
+        .catch(() => {})
+    }
+  }, [])
 
+  const inicialAvatar = usuario.nombre
+    ? usuario.nombre.charAt(0).toLowerCase()
+    : '?'
 
-    return (
-      <div className="pagina centrada">
+  return (
+    <div className="pagina">
 
-        <Header
-          titulo="Perfil"
-          onVolver={() => navigate(-1)}
-        />
+      <Header
+        titulo="Perfil"
+        onVolver={() => navigate(-1)}
+      />
 
-        <div className="perfil-info">
-          <div className="avatar">👤</div>
-          <strong>{usuario.nombre}</strong>
-          <p>@{usuario.username}</p>
+      {/* Avatar + nombre */}
+      <div className="perfil-info">
+        <div className="avatar-wrapper">
+          <div className="avatar">{inicialAvatar}</div>
+          <div className="avatar-camara">📷</div>
         </div>
+        <p className="perfil-nombre">{usuario.nombre}</p>
+        <p className="perfil-username">@{usuario.username}</p>
+      </div>
 
-        <div className="stats">
-          <div className="card cyan">
-            <strong>{usuario.asistidos}</strong>
-            <p>Asistidos</p>
-          </div>
-
-          <div className="card cyan">
-            <strong>{usuario.creados}</strong>
-            <p>Creados</p>
-          </div>
-
-          <div className="card cyan">
-            <strong>{usuario.amigos}</strong>
-            <p>Amigos</p>
-          </div>
+      {/* Stats */}
+      <div className="stats">
+        <div className="card">
+          <strong>{usuario.asistidos}</strong>
+          <p>Asistidos</p>
         </div>
-
-        <div className="card nivel cyan">
-          <p>⚡ Nivel {usuario.nivel}</p>
-          <div className="barra">
-            <div />
-          </div>
-          <small>
-            {usuario.xpFaltante} XP para el siguiente nivel
-          </small>
+        <div className="card">
+          <strong>{usuario.creados}</strong>
+          <p>Creados</p>
         </div>
+        <div className="card">
+          <strong>{usuario.amigos}</strong>
+          <p>Conexiones</p>
+        </div>
+      </div>
 
-        <section className="cyan">
-          <h2>Mis intereses</h2>
-
-          {usuario.intereses.length === 0 ? (
-            <p className="vacio">
-              Todavía no agregaste intereses.
-            </p>
-          ) : (
-            usuario.intereses.map(interes => (
-              <span key={interes}>{interes}</span>
-            ))
-          )}
-        </section>
-
-        <section className="cyan">
-          <h2>Mis amigos</h2>
-          <p className="vacio">
-            Todavía no tenés amigos. Buscá personas en Explorar 👋
+      {/* Nivel */}
+      <div className="card nivel">
+        <div className="nivel-header">
+          <p className="nivel-titulo">
+            <span className="icono">⚡</span>
+            Nivel {usuario.nivel}
           </p>
-        </section>
+          <p className="nivel-xp">{usuario.xp} XP</p>
+        </div>
+        <div className="barra">
+          <div style={{ width: `${Math.min((usuario.xp / (usuario.xp + usuario.xpFaltante)) * 100, 100)}%` }} />
+        </div>
+        <small>{usuario.xpFaltante} XP para el siguiente nivel</small>
+      </div>
 
-        <section>
-          <h2>Logros</h2>
+      {/* Intereses */}
+      <section>
+        <h2>Mis intereses</h2>
+        {usuario.intereses.length === 0 ? (
+          <button className="intereses-agregar">
+            <span>+</span>
+            Agregá tus intereses
+          </button>
+        ) : (
+          usuario.intereses.map(interes => (
+            <span key={interes}>{interes}</span>
+          ))
+        )}
+      </section>
 
-          <Logro
-            icono="📅"
-            titulo="Primer evento"
-            desc="Asististe a tu primer evento"
-          />
+      {/* Amigos */}
+      <section>
+        <div className="amigos-header">
+          <span className="icono">👥</span>
+          <h2>Mis amigos</h2>
+          <span className="amigos-badge">{usuario.amigos}</span>
+        </div>
+        <div className="amigos-vacio">
+          Todavía no tenés amigos. Buscá personas en Explorar 👋
+        </div>
+      </section>
 
-          <Logro
-            icono="🗂️"
-            titulo="Organizador"
-            desc="Organizaste tu primer evento"
-          />
-
-          <Logro
+      {/* Logros */}
+      <section>
+        <h2>Logros</h2>
+        <Logro
+          icono="🏆"
+          titulo="Primer evento"
+          desc="Asististe a tu primer evento"
+        />
+        <Logro
+          icono="⭐"
+          titulo="Organizador"
+          desc="Creaste tu primer evento"
+        />
+         <Logro
             icono="🤝"
             titulo="Social Pro"
             desc="Conecta con 50 personas"
@@ -135,6 +146,5 @@
 
       </div>
     )
-  }
-
+}
   export default Perfil

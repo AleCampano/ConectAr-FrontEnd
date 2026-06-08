@@ -21,10 +21,48 @@ form {
 .seccion-label {
   font-size: 13px;
   font-weight: 600;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
+  color: #ccc;
   margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.seccion-label span {
+  font-size: 14px;
+}
+
+.requerido {
+  color: #00d4ff;
+}
+
+/* ── Campos ── */
+.campo input,
+.campo textarea,
+.campo-input {
+  width: 100%;
+  background: #161616;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  color: white;
+  font-size: 15px;
+  padding: 14px;
+  box-sizing: border-box;
+  outline: none;
+  font-family: inherit;
+  color-scheme: dark;
+}
+
+.campo input:focus,
+.campo textarea:focus,
+.campo-input:focus {
+  border-color: #00d4ff;
+}
+
+.campo input::placeholder,
+.campo textarea::placeholder,
+.campo-input::placeholder {
+  color: #444;
 }
 
 /* ── Fila doble ── */
@@ -40,7 +78,7 @@ form {
 /* ── Textarea ── */
 .textarea {
   width: 100%;
-  background: #1a1a1a;
+  background: #161616;
   border: 1px solid #2a2a2a;
   border-radius: 12px;
   color: white;
@@ -57,30 +95,39 @@ form {
 }
 
 .textarea::placeholder {
-  color: #555;
+  color: #444;
 }
 
-/* ── Tags ── */
+/* ── Tags / Categorías ── */
 .tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 4px;
 }
 
 .tag {
-  background: #1a1a1a;
+  background: #161616;
   border: 1px solid #2a2a2a;
-  color: white;
+  color: #ccc;
   border-radius: 99px;
-  padding: 6px 14px;
+  padding: 7px 14px;
   font-size: 13px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.tag:hover {
+  border-color: #444;
+  color: white;
 }
 
 .tag-activo {
   border-color: #00d4ff;
   color: #00d4ff;
+  background: #00d4ff10;
 }
 
 /* ── Toggle acceso ── */
@@ -97,8 +144,14 @@ form {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid #444;
+  border: 1px solid #333;
   background: transparent;
+  color: #888;
+  transition: all 0.15s;
+}
+
+.toggle:hover {
+  border-color: #555;
   color: white;
 }
 
@@ -114,75 +167,51 @@ form {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 200px;
+  height: 180px;
   border-radius: 16px;
-  border: 2px dashed #333;
+  border: 1px solid #2a2a2a;
   background: #141414;
   cursor: pointer;
   margin-bottom: 20px;
   overflow: hidden;
+  transition: border-color 0.15s;
 }
 
 .subir-imagen:hover {
-  border-color: #00d4ff;
+  border-color: #444;
 }
 
 .subir-imagen-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: #555;
 }
 
 .subir-imagen-icono {
-  font-size: 32px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.subir-imagen-icono svg {
+  width: 100%;
+  height: 100%;
+  stroke: #555;
 }
 
 .subir-imagen-placeholder span:last-child {
-  font-size: 14px;
+  font-size: 13px;
+  color: #555;
 }
 
 .portada-preview {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-/* ── Contador ── */
-.contador {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 12px;
-  padding: 12px 16px;
-  margin-bottom: 4px;
-}
-
-.contador span {
-  font-size: 18px;
-  font-weight: 600;
-  flex: 1;
-  text-align: center;
-}
-
-.contador button {
-  background: #2a2a2a;
-  border: none;
-  color: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  font-size: 18px;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.contador button:hover {
-  background: #00d4ff;
-  color: #0d0d0d;
 }
 
 /* ── Validación ── */

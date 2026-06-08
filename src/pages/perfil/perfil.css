@@ -1,3 +1,4 @@
+/* ── Base ── */
 .pagina {
   background: #0d0d0d;
   color: white;
@@ -22,6 +23,40 @@
   margin: 0;
 }
 
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.header-actions button {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  padding: 0;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.header-actions button:hover {
+  color: white;
+}
+
 /* ── Perfil ── */
 .perfil-info {
   display: flex;
@@ -30,32 +65,51 @@
   margin-bottom: 20px;
 }
 
-.avatar {
-  font-size: 48px;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 2px solid #00d4ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;
-}
-
-/* ── Card ── */
-.card,
-section {
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 12px;
-  padding: 14px;
-  width: 100%;
-  box-sizing: border-box;
+.avatar-wrapper {
+  position: relative;
   margin-bottom: 12px;
 }
 
-.cyan {
-  border-color: #00d4ff;
+.avatar {
+  font-size: 32px;
+  font-weight: 600;
+  color: #00d4ff;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid #00d4ff;
+  background: #0d0d0d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-camara {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.perfil-nombre {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.perfil-username {
+  font-size: 13px;
+  color: #00d4ff;
+  margin: 0;
 }
 
 /* ── Stats ── */
@@ -76,27 +130,71 @@ section {
 
 .stats .card strong {
   display: block;
-  font-size: 20px;
-  color: #00d4ff;
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 4px;
 }
 
 .stats .card p {
-  font-size: 12px;
-  color: #888;
-  margin: 2px 0 0;
+  font-size: 11px;
+  color: #666;
+  margin: 0;
+}
+
+/* ── Card ── */
+.card,
+section {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.cyan {
+  border-color: #00d4ff;
 }
 
 /* ── Nivel ── */
-.nivel > p {
+.nivel {
+  margin-bottom: 12px;
+}
+
+.nivel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.nivel-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-weight: 600;
-  margin: 0 0 10px;
+  font-size: 15px;
+  margin: 0;
+}
+
+.nivel-titulo span.icono {
+  color: #00d4ff;
+  font-size: 16px;
+}
+
+.nivel-xp {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
 }
 
 .barra {
   background: #222;
   border-radius: 99px;
   height: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .barra div {
@@ -104,6 +202,7 @@ section {
   height: 100%;
   border-radius: 99px;
   width: 0%;
+  transition: width 0.4s ease;
 }
 
 .nivel small {
@@ -111,8 +210,109 @@ section {
   font-size: 12px;
 }
 
+/* ── Secciones ── */
 section h2 {
   font-size: 15px;
   font-weight: 600;
   margin: 0 0 10px;
+}
+
+/* ── Intereses ── */
+.intereses-agregar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #888;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.intereses-agregar:hover {
+  color: #00d4ff;
+}
+
+.intereses-agregar span {
+  font-size: 16px;
+  color: #888;
+}
+
+/* ── Amigos ── */
+.amigos-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.amigos-header h2 {
+  margin: 0;
+}
+
+.amigos-header .icono {
+  font-size: 16px;
+  color: #aaa;
+}
+
+.amigos-badge {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 99px;
+  font-size: 11px;
+  color: #888;
+  padding: 1px 8px;
+  font-weight: 600;
+}
+
+.amigos-vacio {
+  background: #161616;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: #666;
+}
+
+/* ── Logros ── */
+.logro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #161616;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.logro:last-child {
+  margin-bottom: 0;
+}
+
+.logro-icono {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #1e1e1e;
+  border: 1px solid #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  color: #aaa;
+}
+
+.logro-info strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.logro-info span {
+  font-size: 12px;
+  color: #666;
 }
