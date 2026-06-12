@@ -17,6 +17,11 @@
 
 /* ── Home ── */
 .boton-crear {
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.boton-explorar {
   margin-bottom: 20px;
   letter-spacing: 0.5px;
 }

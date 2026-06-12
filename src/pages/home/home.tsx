@@ -23,6 +23,10 @@ function Home() {
         + Crear evento
       </button>
 
+      <button className="boton boton-secundario boton-explorar" onClick={() => navigate('/explorar')}>
+        🔍 Explorar eventos
+      </button>
+
       {eventos.length === 0 && <p className="vacio">Todavía no hay eventos. ¡Creá el primero!</p>}
 
       {eventos.map((ev: any) => {

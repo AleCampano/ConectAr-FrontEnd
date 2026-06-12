@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header/Header'
 import Boton from '../../components/Boton/Boton'
 import './crearEvento.css'
 import { crearEvento } from '../../services/eventos'
+import { buscarDirecciones } from '../../ubicacionApi'
 
 const TIPOS = [
   { label: 'Deporte',         emoji: '⚽' },
@@ -31,10 +32,28 @@ function CrearEvento() {
   const navigate = useNavigate()
   const [form, setForm] = useState(INICIAL)
   const [error, setError] = useState('')
+  const [sugerencias, setSugerencias] = useState<{ label: string }[]>([])
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const set = (campo: string) => (valor: any) => {
     setError('')
     setForm(f => ({ ...f, [campo]: valor }))
+  }
+
+  const handleUbicacionChange = (valor: string) => {
+    set('ubicacion')(valor)
+    setSugerencias([])
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (valor.length < 3) return
+    debounceRef.current = setTimeout(async () => {
+      const resultados = await buscarDirecciones(valor)
+      setSugerencias(resultados)
+    }, 400)
+  }
+
+  const seleccionarSugerencia = (label: string) => {
+    set('ubicacion')(label)
+    setSugerencias([])
   }
 
   const handleImagen = (e: any) => {
@@ -181,9 +200,24 @@ function CrearEvento() {
               type="text"
               placeholder="Ej: Parque Centenario, CABA"
               value={form.ubicacion}
-              onChange={e => set('ubicacion')(e.target.value)}
+              onChange={e => handleUbicacionChange(e.target.value)}
+              autoComplete="off"
             />
           </div>
+          {sugerencias.length > 0 && (
+            <div className="sugerencias">
+              {sugerencias.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className="sugerencia"
+                  onClick={() => seleccionarSugerencia(s.label)}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Máximo de personas */}
