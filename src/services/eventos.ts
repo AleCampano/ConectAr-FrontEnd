@@ -1,7 +1,10 @@
 import { BASE_URL } from '../config/api'
 
-export async function listarEventos() {
-  const res = await fetch(`${BASE_URL}/events`)
+export async function listarEventos(type?: string) {
+  const url = type
+    ? `${BASE_URL}/events?type=${encodeURIComponent(type)}`
+    : `${BASE_URL}/events`
+  const res = await fetch(url)
   if (!res.ok) throw new Error('Error al obtener eventos')
   return res.json()
 }
@@ -68,5 +71,12 @@ export async function abandonarEvento(eventId: string) {
 export async function listarPersonas(eventId: string) {
   const res = await fetch(`${BASE_URL}/events/${eventId}/participants`)
   if (!res.ok) throw new Error('Error al obtener participantes')
+  return res.json()
+}
+
+export async function buscarPersonas(query: string) {
+  if (query.length < 2) return []
+  const res = await fetch(`${BASE_URL}/users/search?q=${encodeURIComponent(query)}`)
+  if (!res.ok) throw new Error('Error al buscar personas')
   return res.json()
 }

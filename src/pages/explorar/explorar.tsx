@@ -1,11 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header/Header'
-import { listarEventos, borrarEvento, unirseEvento, abandonarEvento, listarPersonas } from '../../services/eventos'
+import { listarEventos, borrarEvento, unirseEvento, abandonarEvento, listarPersonas, buscarPersonas } from '../../services/eventos'
 import './explorar.css'
 
-const TABS = ['Todos', 'Eventos', 'Personas']
-const TENDENCIAS = ['Fútbol', 'Música', 'Previas', 'Estudio', 'Cultura']
+const TABS = [
+  { id: 'Todos',    label: '🌐 Todos'   },
+  { id: 'Eventos',  label: '📅 Eventos' },
+  { id: 'Personas', label: '👤 Personas'},
+]
+
+const TENDENCIAS = [
+  { id: 'deporte',  label: '⚽ Deporte'  },
+  { id: 'concierto', label: '🎵 Concierto' },
+  { id: 'cultura',  label: '🎭 Cultura'  },
+  { id: 'fiesta',   label: '🎉 Fiesta'   },
+  { id: 'otro',     label: '✨ Otro'     },
+]
 
 function Explorar() {
   const navigate = useNavigate()
@@ -13,12 +24,18 @@ function Explorar() {
   const [busqueda, setBusqueda] = useState('')
   const [tendencia, setTendencia] = useState('')
   const [eventos, setEventos] = useState<any[]>([])
+  const [cargandoEventos, setCargandoEventos] = useState(true)
   const [eventosUnidos, setEventosUnidos] = useState<string[]>([])
+  const [personas, setPersonas] = useState<any[]>([])
+  const [buscandoPersonas, setBuscandoPersonas] = useState(false)
+  const [amigosAgregados, setAmigosAgregados] = useState<string[]>([])
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const userId = localStorage.getItem('user_id')
 
   useEffect(() => {
-    listarEventos()
+    setCargandoEventos(true)
+    listarEventos(tendencia || undefined)
       .then(async (data) => {
         setEventos(data)
         const unidos: string[] = []
@@ -38,19 +55,46 @@ function Explorar() {
         setEventosUnidos(unidos)
       })
       .catch(console.error)
-  }, [])
+      .finally(() => setCargandoEventos(false))
+  }, [tendencia])
+
+  // Búsqueda de personas con debounce
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    if (busqueda.length < 2) {
+      setPersonas([])
+      return
+    }
+
+    setBuscandoPersonas(true)
+    debounceRef.current = setTimeout(() => {
+      buscarPersonas(busqueda)
+        .then(setPersonas)
+        .catch(() => setPersonas([]))
+        .finally(() => setBuscandoPersonas(false))
+    }, 300)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [busqueda])
 
   const eventosFiltrados = eventos.filter(ev => {
-    const coincideBusqueda =
+    return (
       ev.title.toLowerCase().includes(busqueda.toLowerCase()) ||
       ev.description.toLowerCase().includes(busqueda.toLowerCase())
-    const coincideTendencia =
-      !tendencia || ev.event_type.toLowerCase().includes(tendencia.toLowerCase())
-    return coincideBusqueda && coincideTendencia
+    )
   })
 
   const seleccionarTendencia = (t: string) => {
     setTendencia(prev => (prev === t ? '' : t))
+  }
+
+  const handleAgregarAmigo = (id: string) => {
+    setAmigosAgregados(prev =>
+      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+    )
   }
 
   const handleBorrar = async (id: string) => {
@@ -99,11 +143,11 @@ function Explorar() {
       <div className="tabs">
         {TABS.map(t => (
           <button
-            key={t}
-            className={t === tab ? 'tab tab-activo' : 'tab'}
-            onClick={() => setTab(t)}
+            key={t.id}
+            className={t.id === tab ? 'tab tab-activo' : 'tab'}
+            onClick={() => setTab(t.id)}
           >
-            {t === 'Eventos' ? '📅 ' : t === 'Personas' ? '👤 ' : ''}{t}
+            {t.label}
           </button>
         ))}
       </div>
@@ -115,11 +159,11 @@ function Explorar() {
           <div className="tendencias">
             {TENDENCIAS.map(t => (
               <button
-                key={t}
-                className={tendencia === t ? 'tag tag-activo' : 'tag'}
-                onClick={() => seleccionarTendencia(t)}
+                key={t.id}
+                className={tendencia === t.id ? 'tag tag-activo' : 'tag'}
+                onClick={() => seleccionarTendencia(t.id)}
               >
-                {t}
+                {t.label}
               </button>
             ))}
           </div>
@@ -133,9 +177,24 @@ function Explorar() {
       {mostrarEventos && (
         <div className="lista">
           {tab !== 'Todos' && <p className="seccion-label">Eventos</p>}
-          {eventosFiltrados.length === 0
-            ? <p className="vacio">No hay eventos todavía.</p>
-            : eventosFiltrados.map(ev => {
+          {cargandoEventos ? (
+            <>
+              {[1, 2, 3].map(i => (
+                <div key={i} className="card-skeleton">
+                  <div className="skeleton-titulo" />
+                  <div className="skeleton-linea" />
+                  <div className="skeleton-linea skeleton-linea-corta" />
+                  <div className="skeleton-footer">
+                    <div className="skeleton-tag" />
+                    <div className="skeleton-btn" />
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : eventosFiltrados.length === 0 ? (
+            <p className="vacio">No hay eventos todavía.</p>
+          ) : (
+            eventosFiltrados.map(ev => {
                 const esMio = ev.created_by === userId || ev.user_id === userId
                 const yaUnido = eventosUnidos.includes(ev.id)
                 return (
@@ -189,7 +248,7 @@ function Explorar() {
                   </div>
                 )
               })
-          }
+          )}
         </div>
       )}
 
@@ -197,7 +256,35 @@ function Explorar() {
       {mostrarPersonas && (
         <div className="lista">
           {tab !== 'Todos' && <p className="seccion-label">Personas</p>}
-          <p className="vacio">No hay personas todavía.</p>
+          {buscandoPersonas ? (
+            <p className="vacio">Buscando...</p>
+          ) : busqueda.length < 2 ? (
+            <p className="vacio">Escribí al menos 2 caracteres para buscar personas.</p>
+          ) : personas.length === 0 ? (
+            <p className="vacio">No se encontraron personas.</p>
+          ) : (
+            personas.map(persona => (
+              <div key={persona.id} className="card-persona">
+                <div className="persona-avatar">
+                  {persona.avatar_url
+                    ? <img src={persona.avatar_url} alt={persona.username} />
+                    : <div className="avatar-placeholder">👤</div>
+                  }
+                </div>
+                <div className="persona-info">
+                  <p className="persona-nombre">{persona.full_name}</p>
+                  <p className="persona-username">@{persona.username}</p>
+                  {persona.bio && <p className="persona-bio">{persona.bio}</p>}
+                </div>
+                <button
+                  className={amigosAgregados.includes(persona.id) ? 'btn-amigo-agregado' : 'btn-agregar-amigo'}
+                  onClick={() => handleAgregarAmigo(persona.id)}
+                >
+                  {amigosAgregados.includes(persona.id) ? '✅ Agregado' : '➕ Agregar'}
+                </button>
+              </div>
+            ))
+          )}
         </div>
       )}
     </div>
