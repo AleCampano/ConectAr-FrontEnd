@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { ThemeProvider } from './context/ThemeContext'
 import Registrarse from './pages/registrarse/registrarse'
 import Login from './pages/login/login'
 import Home from './pages/home/home'
@@ -9,17 +10,19 @@ import VerParticipantes from './pages/verParticipantes/verParticipantes'
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Registrarse />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/perfil" element={<Perfil />} />
-        <Route path="/explorar" element={<Explorar />} />
-        <Route path="/crear-evento" element={<CrearEvento />} />
-        <Route path="/participantes/:id" element={<VerParticipantes />} />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Registrarse />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/perfil" element={<Perfil />} />
+          <Route path="/explorar" element={<Explorar />} />
+          <Route path="/crear-evento" element={<CrearEvento />} />
+          <Route path="/participantes/:id" element={<VerParticipantes />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
 

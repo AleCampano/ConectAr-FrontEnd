@@ -1,6 +1,6 @@
 .pagina {
-  background: #0d0d0d;
-  color: white;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100svh;
   max-width: 430px;
   margin: 0 auto;
@@ -26,11 +26,11 @@ form {
 }
 
 .pie {
-  color: #666;
+  color: var(--text-dim);
   font-size: 14px;
   margin-top: 20px;
 }
 
 .pie a {
-  color: #00d4ff;
+  color: var(--accent);
 }

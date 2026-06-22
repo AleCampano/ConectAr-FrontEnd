@@ -1,16 +1,16 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listarEventos, borrarEvento, unirseEvento, abandonarEvento, listarPersonas, buscarPersonas } from '../../services/eventos'
+import BottomNav from '../../components/BottomNav/BottomNav'
 import './explorar.css'
 
 const TENDENCIAS = [
-  { id: '',                label: '🌐 Todos'    },
-  { id: 'deporte',         label: '⚽ Deporte'  },
-  { id: 'música',          label: '🎵 Música'   },
-  { id: 'salida nocturna', label: '🌙 Previas'  },
-  { id: 'estudio',         label: '📚 Estudio'  },
-  { id: 'cultura',         label: '🎭 Cultura'  },
-  { id: 'otro',            label: '✨ Otros'    },
+  { id: '',          label: '🌐 Todos'    },
+  { id: 'deporte',   label: '⚽ Deporte'  },
+  { id: 'concierto', label: '🎵 Música'   },
+  { id: 'cultura',   label: '� Cultura'  },
+  { id: 'fiesta',    label: '🌙 Salida Nocturna'  },
+  { id: 'otro',      label: '✨ Otros'    },
 ]
 
 function Explorar() {
@@ -31,7 +31,7 @@ function Explorar() {
 
   useEffect(() => {
     setCargandoEventos(true)
-    listarEventos(tendencia || undefined)
+    listarEventos()
       .then(async (data) => {
         setEventos(data)
         const unidos: string[] = []
@@ -50,7 +50,7 @@ function Explorar() {
       })
       .catch(console.error)
       .finally(() => setCargandoEventos(false))
-  }, [tendencia])
+  }, [])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -68,10 +68,13 @@ function Explorar() {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [busqueda, tab])
 
-  const eventosFiltrados = eventos.filter(ev =>
-    ev.title?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    ev.description?.toLowerCase().includes(busqueda.toLowerCase())
-  )
+  const eventosFiltrados = eventos.filter(ev => {
+    const coincideTendencia = !tendencia || ev.event_type === tendencia
+    const coincideBusqueda = !busqueda ||
+      ev.title?.toLowerCase().includes(busqueda.toLowerCase()) ||
+      ev.description?.toLowerCase().includes(busqueda.toLowerCase())
+    return coincideTendencia && coincideBusqueda
+  })
 
   const handleBorrar = async (id: string) => {
     if (!confirm('¿Seguro que querés borrar este evento?')) return
@@ -158,12 +161,8 @@ function Explorar() {
               ))}
             </div>
 
-            <button className="exp-ubicacion-badge">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="12" height="12">
-                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-              </svg>
-              Mostrando eventos en Buenos Aires, CABA
-            </button>
+
+
           </>
         )}
 
@@ -193,7 +192,10 @@ function Explorar() {
                   <article key={ev.id} className="exp-card">
                     {/* autor */}
                     <div className="exp-card-autor">
-                      <div className="exp-avatar">{iniciales}</div>
+                      {ev.users?.avatar_url
+                        ? <img src={ev.users.avatar_url} alt={creatorNombre} className="exp-avatar exp-avatar-foto" />
+                        : <div className="exp-avatar">{iniciales}</div>
+                      }
                       <span className="exp-autor-nombre">{creatorNombre}</span>
                       {esMio && (
                         <div className="exp-card-actions">
@@ -278,32 +280,7 @@ function Explorar() {
       </div>
 
       {/* ── Bottom Nav ── */}
-      <nav className="bottom-nav">
-        <button className="nav-btn" onClick={() => navigate('/home')} aria-label="Home">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-          <span>Home</span>
-        </button>
-
-        <button className="nav-btn nav-btn-crear" onClick={() => navigate('/crear-evento')} aria-label="Crear evento">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="28" height="28">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="16" />
-            <line x1="8" y1="12" x2="16" y2="12" />
-          </svg>
-          <span>Crear</span>
-        </button>
-
-        <button className="nav-btn" aria-label="Mensajes">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
-            <line x1="22" y1="2" x2="11" y2="13" />
-            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-          </svg>
-          <span>Mensajes</span>
-        </button>
-      </nav>
+      <BottomNav />
 
     </div>
   )

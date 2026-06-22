@@ -5,20 +5,21 @@
 
 .campo input {
   width: 100%;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
+  background: var(--bg-input);
+  border: 1px solid var(--border2);
   border-radius: 12px;
-  color: white;
+  color: var(--text);
   font-size: 15px;
   padding: 14px 44px 14px 14px;
   box-sizing: border-box;
   outline: none;
+  transition: border-color 0.2s;
 }
 
 .campo input:focus {
-  border-color: #00d4ff;
+  border-color: var(--accent);
 }
 
 .campo input::placeholder {
-  color: #555;
+  color: var(--text-dim);
 }

@@ -4,12 +4,48 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Tema oscuro (default) ── */
+:root,
+[data-theme='dark'] {
   color-scheme: dark;
+  --bg:          #0d0d0d;
+  --bg-card:     #111;
+  --bg-card2:    #161616;
+  --bg-input:    #1a1a1a;
+  --border:      #1e1e1e;
+  --border2:     #2a2a2a;
+  --text:        #ffffff;
+  --text-muted:  #aaaaaa;
+  --text-dim:    #666666;
+  --accent:      #00d4ff;
+  --accent-bg:   rgba(0, 212, 255, 0.08);
+  --nav-bg:      #111;
+}
+
+/* ── Tema claro ── */
+[data-theme='light'] {
+  color-scheme: light;
+  --bg:          #f0f2f5;
+  --bg-card:     #ffffff;
+  --bg-card2:    #f7f8fa;
+  --bg-input:    #e8eaed;
+  --border:      #e0e0e0;
+  --border2:     #cccccc;
+  --text:        #0d0d0d;
+  --text-muted:  #555555;
+  --text-dim:    #888888;
+  --accent:      #0099bb;
+  --accent-bg:   rgba(0, 153, 187, 0.08);
+  --nav-bg:      #ffffff;
 }
 
 body {
   margin: 0;
-  background-color: #0d0d0d;
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.2s, color 0.2s;
 }
 
 #root {
@@ -20,3 +56,44 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/* ── Bottom Nav (compartido entre páginas) ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: var(--nav-bg);
+  border-top: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 10px 0 14px;
+  z-index: 100;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  padding: 4px 20px;
+  border-radius: 10px;
+  transition: color 0.2s;
+}
+
+.nav-btn:hover { color: var(--accent); }
+
+.nav-btn-activo { color: var(--accent) !important; }
+
+.nav-btn-crear { color: var(--accent); }
+.nav-btn-crear svg { stroke: var(--accent); }

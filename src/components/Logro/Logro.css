@@ -18,10 +18,11 @@
   font-size: 14px;
   display: block;
   margin-bottom: 2px;
+  color: var(--text);
 }
 
 .logro div p {
   font-size: 12px;
-  color: #666;
+  color: var(--text-dim);
   margin: 0;
 }

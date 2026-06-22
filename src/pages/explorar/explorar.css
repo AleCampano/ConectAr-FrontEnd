@@ -1,7 +1,7 @@
 /* ── Layout ── */
 .exp-wrapper {
-  background: #0d0d0d;
-  color: #fff;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100svh;
   max-width: 430px;
   margin: 0 auto;
@@ -19,7 +19,7 @@
   font-size: 22px;
   font-weight: 700;
   margin: 0;
-  color: #fff;
+  color: var(--text);
 }
 
 /* ── Buscador ── */
@@ -27,15 +27,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #111;
-  border: 1.5px solid #00d4ff;
+  background: var(--bg-card);
+  border: 1.5px solid var(--accent);
   border-radius: 99px;
   padding: 10px 16px;
   margin: 12px 14px 0;
 }
 
 .exp-search-icon {
-  color: #00d4ff;
+  color: var(--accent);
   flex-shrink: 0;
 }
 
@@ -43,26 +43,26 @@
   background: none;
   border: none;
   outline: none;
-  color: #fff;
+  color: var(--text);
   font-size: 13px;
   width: 100%;
 }
 
 .exp-buscador input::placeholder {
-  color: #555;
+  color: var(--text-dim);
 }
 
 .exp-clear {
   background: none;
   border: none;
-  color: #666;
+  color: var(--text-dim);
   font-size: 13px;
   cursor: pointer;
   flex-shrink: 0;
   padding: 0 2px;
 }
 
-.exp-clear:hover { color: #aaa; }
+.exp-clear:hover { color: var(--text-muted); }
 
 /* ── Tabs ── */
 .exp-tabs {
@@ -75,9 +75,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #1a1a1a;
-  border: 1.5px solid #2a2a2a;
-  color: #aaa;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border2);
+  color: var(--text-muted);
   border-radius: 99px;
   padding: 8px 18px;
   font-size: 13px;
@@ -87,13 +87,13 @@
 }
 
 .exp-tab.activo {
-  border-color: #00d4ff;
-  color: #00d4ff;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .exp-tab:hover:not(.activo) {
-  border-color: #444;
-  color: #ddd;
+  border-color: var(--border2);
+  color: var(--text);
 }
 
 /* ── Scroll area ── */
@@ -109,7 +109,7 @@
 /* ── Tendencias ── */
 .exp-seccion-label {
   font-size: 13px;
-  color: #aaa;
+  color: var(--text-muted);
   margin: 0 0 10px;
 }
 
@@ -121,9 +121,9 @@
 }
 
 .exp-chip {
-  background: #1a1a1a;
-  border: 1.5px solid #2a2a2a;
-  color: #ccc;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border2);
+  color: var(--text-muted);
   border-radius: 99px;
   padding: 5px 12px;
   font-size: 12px;
@@ -133,17 +133,13 @@
 }
 
 .exp-chip.activo {
-  border-color: #00d4ff;
-  color: #00d4ff;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .exp-chip:hover:not(.activo) {
-  border-color: #444;
-  color: #eee;
-}
-
-.chip-count {
-  color: #888;
+  border-color: var(--border2);
+  color: var(--text);
 }
 
 /* ── Ubicación badge ── */
@@ -151,12 +147,12 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #111;
-  border: 1.5px solid #00d4ff;
+  background: var(--bg-card);
+  border: 1.5px solid var(--accent);
   border-radius: 99px;
   padding: 6px 14px;
   font-size: 12px;
-  color: #00d4ff;
+  color: var(--accent);
   cursor: default;
   margin-bottom: 16px;
 }
@@ -169,7 +165,7 @@
 }
 
 .exp-vacio {
-  color: #555;
+  color: var(--text-dim);
   font-size: 13px;
   text-align: center;
   padding: 32px 0;
@@ -177,8 +173,8 @@
 
 /* ── Card evento ── */
 .exp-card {
-  background: #111;
-  border: 1.5px solid #00d4ff;
+  background: var(--bg-card);
+  border: 1.5px solid var(--accent);
   border-radius: 14px;
   overflow: hidden;
 }
@@ -194,22 +190,27 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 2px solid #00d4ff;
-  background: #1a1a1a;
+  border: 2px solid var(--accent);
+  background: var(--bg-input);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
   font-weight: 700;
-  color: #00d4ff;
+  color: var(--accent);
   flex-shrink: 0;
+}
+
+.exp-avatar-foto {
+  object-fit: cover;
+  display: block;
 }
 
 .exp-autor-nombre {
   flex: 1;
   font-size: 14px;
   font-weight: 600;
-  color: #00d4ff;
+  color: var(--accent);
 }
 
 .exp-card-actions {
@@ -219,15 +220,16 @@
 
 .exp-btn-icono {
   background: none;
-  border: 1px solid #2a2a2a;
+  border: 1px solid var(--border2);
   border-radius: 8px;
   padding: 3px 7px;
   font-size: 14px;
   cursor: pointer;
   transition: background 0.15s;
+  color: var(--text);
 }
 
-.exp-btn-icono:hover { background: #2a2a2a; }
+.exp-btn-icono:hover { background: var(--border2); }
 
 .exp-btn-borrar:hover {
   border-color: #ff4d4d;
@@ -244,13 +246,13 @@
 .exp-card-titulo {
   font-size: 16px;
   font-weight: 700;
-  color: #00d4ff;
+  color: var(--accent);
   margin: 0;
 }
 
 .exp-card-desc {
   font-size: 13px;
-  color: #ccc;
+  color: var(--text-muted);
   margin: 0;
   line-height: 1.5;
 }
@@ -261,7 +263,7 @@
   object-fit: cover;
   max-height: 200px;
   display: block;
-  border: 1px solid #2a2a2a;
+  border: 1px solid var(--border2);
 }
 
 .exp-card-tags {
@@ -272,7 +274,7 @@
 
 .exp-tag {
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-muted);
 }
 
 .exp-card-footer {
@@ -280,14 +282,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px 12px;
-  border-top: 1px solid #1e1e1e;
+  border-top: 1px solid var(--border);
   gap: 8px;
 }
 
 .exp-btn-participantes {
   background: none;
-  border: 1px solid #2a2a2a;
-  color: #aaa;
+  border: 1px solid var(--border2);
+  color: var(--text-muted);
   border-radius: 99px;
   padding: 6px 12px;
   font-size: 12px;
@@ -296,12 +298,12 @@
 }
 
 .exp-btn-participantes:hover {
-  border-color: #00d4ff;
-  color: #00d4ff;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .exp-btn-unirse {
-  background: #00d4ff;
+  background: var(--accent);
   color: #000;
   border: none;
   border-radius: 99px;
@@ -315,7 +317,7 @@
 .exp-btn-unirse:hover { opacity: 0.85; }
 
 .exp-btn-unido {
-  background: #1e2e1e;
+  background: rgba(106, 191, 106, 0.1);
   border: 1px solid #3a6a3a;
   color: #6abf6a;
   border-radius: 99px;
@@ -327,8 +329,8 @@
 
 /* ── Card persona ── */
 .exp-card-persona {
-  background: #111;
-  border: 1.5px solid #1e1e1e;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
   border-radius: 14px;
   padding: 14px;
   display: flex;
@@ -348,7 +350,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: #2a2a2a;
+  background: var(--border2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -366,18 +368,19 @@
   font-size: 14px;
   font-weight: 600;
   margin: 0;
+  color: var(--text);
 }
 
 .exp-persona-user {
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-muted);
   margin: 0;
 }
 
 .exp-btn-agregar {
   background: none;
-  border: 1.5px solid #00d4ff;
-  color: #00d4ff;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
   border-radius: 99px;
   padding: 6px 14px;
   font-size: 13px;
@@ -389,12 +392,12 @@
 }
 
 .exp-btn-agregar:hover {
-  background: #00d4ff;
+  background: var(--accent);
   color: #000;
 }
 
 .exp-btn-agregado {
-  background: #1e2e1e;
+  background: rgba(106, 191, 106, 0.1);
   border: 1.5px solid #3a6a3a;
   color: #6abf6a;
   border-radius: 99px;
@@ -413,8 +416,8 @@
 }
 
 .exp-skeleton {
-  background: #111;
-  border: 1.5px solid #1e1e1e;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
   border-radius: 14px;
   padding: 16px;
   display: flex;
@@ -426,7 +429,7 @@
 .sk-titulo,
 .sk-linea {
   border-radius: 8px;
-  background: linear-gradient(90deg, #1e1e1e 25%, #2a2a2a 50%, #1e1e1e 75%);
+  background: linear-gradient(90deg, var(--border) 25%, var(--border2) 50%, var(--border) 75%);
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
 }
@@ -435,42 +438,3 @@
 .sk-titulo  { height: 16px; width: 55%; }
 .sk-linea   { height: 12px; width: 100%; }
 .sk-corta   { width: 70%; }
-
-/* ── Bottom Nav ── */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 430px;
-  background: #111;
-  border-top: 1.5px solid #1e1e1e;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 10px 0 14px;
-  z-index: 100;
-}
-
-.nav-btn {
-  background: none;
-  border: none;
-  color: #888;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  padding: 4px 20px;
-  border-radius: 10px;
-  transition: color 0.2s;
-}
-
-.nav-btn:hover { color: #00d4ff; }
-
-.nav-btn-crear { color: #00d4ff; }
-.nav-btn-crear svg { stroke: #00d4ff; }

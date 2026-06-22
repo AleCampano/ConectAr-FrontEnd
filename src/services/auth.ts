@@ -39,3 +39,17 @@ export async function obtenerPerfil(id: string) {
   if (!res.ok) throw new Error('Error al obtener perfil')
   return res.json()
 }
+
+export async function actualizarPerfil(id: string, datos: { avatar_url?: string; full_name?: string; username?: string }) {
+  const token = localStorage.getItem('access_token')
+  const res = await fetch(`${BASE_URL}/users/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
+    body: JSON.stringify(datos)
+  })
+  if (!res.ok) throw new Error('Error al actualizar perfil')
+  return res.json()
+}

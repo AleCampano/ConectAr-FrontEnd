@@ -1,6 +1,6 @@
 .pagina {
-  background: #0d0d0d;
-  color: white;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100svh;
   max-width: 430px;
   margin: 0 auto;
@@ -21,7 +21,7 @@ form {
 .seccion-label {
   font-size: 13px;
   font-weight: 600;
-  color: #ccc;
+  color: var(--text-muted);
   margin: 0 0 8px;
   display: flex;
   align-items: center;
@@ -33,7 +33,7 @@ form {
 }
 
 .requerido {
-  color: #00d4ff;
+  color: var(--accent);
 }
 
 /* ── Campos ── */
@@ -41,28 +41,28 @@ form {
 .campo textarea,
 .campo-input {
   width: 100%;
-  background: #161616;
-  border: 1px solid #2a2a2a;
+  background: var(--bg-card2);
+  border: 1px solid var(--border2);
   border-radius: 12px;
-  color: white;
+  color: var(--text);
   font-size: 15px;
   padding: 14px;
   box-sizing: border-box;
   outline: none;
   font-family: inherit;
-  color-scheme: dark;
+  color-scheme: inherit;
 }
 
 .campo input:focus,
 .campo textarea:focus,
 .campo-input:focus {
-  border-color: #00d4ff;
+  border-color: var(--accent);
 }
 
 .campo input::placeholder,
 .campo textarea::placeholder,
 .campo-input::placeholder {
-  color: #444;
+  color: var(--text-dim);
 }
 
 /* ── Fila doble ── */
@@ -78,10 +78,10 @@ form {
 /* ── Textarea ── */
 .textarea {
   width: 100%;
-  background: #161616;
-  border: 1px solid #2a2a2a;
+  background: var(--bg-card2);
+  border: 1px solid var(--border2);
   border-radius: 12px;
-  color: white;
+  color: var(--text);
   font-size: 15px;
   padding: 14px;
   box-sizing: border-box;
@@ -91,11 +91,11 @@ form {
 }
 
 .textarea:focus {
-  border-color: #00d4ff;
+  border-color: var(--accent);
 }
 
 .textarea::placeholder {
-  color: #444;
+  color: var(--text-dim);
 }
 
 /* ── Tags / Categorías ── */
@@ -106,9 +106,9 @@ form {
 }
 
 .tag {
-  background: #161616;
-  border: 1px solid #2a2a2a;
-  color: #ccc;
+  background: var(--bg-card2);
+  border: 1px solid var(--border2);
+  color: var(--text-muted);
   border-radius: 99px;
   padding: 7px 14px;
   font-size: 13px;
@@ -120,14 +120,14 @@ form {
 }
 
 .tag:hover {
-  border-color: #444;
-  color: white;
+  border-color: var(--border2);
+  color: var(--text);
 }
 
 .tag-activo {
-  border-color: #00d4ff;
-  color: #00d4ff;
-  background: #47909e10;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-bg);
 }
 
 /* ── Toggle acceso ── */
@@ -144,21 +144,21 @@ form {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid #333;
+  border: 1px solid var(--border2);
   background: transparent;
-  color: #888;
+  color: var(--text-muted);
   transition: all 0.15s;
 }
 
 .toggle:hover {
-  border-color: #555;
-  color: white;
+  border-color: var(--text-dim);
+  color: var(--text);
 }
 
 .toggle-activo {
-  background: #00d4ff;
-  color: #0d0d0d;
-  border-color: #00d4ff;
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
 }
 
 /* ── Subir imagen ── */
@@ -169,8 +169,8 @@ form {
   width: 100%;
   height: 180px;
   border-radius: 16px;
-  border: 1px solid #2a2a2a;
-  background: #141414;
+  border: 1px solid var(--border2);
+  background: var(--bg-card2);
   cursor: pointer;
   margin-bottom: 20px;
   overflow: hidden;
@@ -178,7 +178,7 @@ form {
 }
 
 .subir-imagen:hover {
-  border-color: #444;
+  border-color: var(--text-dim);
 }
 
 .subir-imagen-placeholder {
@@ -186,7 +186,7 @@ form {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  color: #555;
+  color: var(--text-dim);
 }
 
 .subir-imagen-icono {
@@ -200,12 +200,12 @@ form {
 .subir-imagen-icono svg {
   width: 100%;
   height: 100%;
-  stroke: #555;
+  stroke: var(--text-dim);
 }
 
 .subir-imagen-placeholder span:last-child {
   font-size: 13px;
-  color: #555;
+  color: var(--text-dim);
 }
 
 .portada-preview {
@@ -219,8 +219,8 @@ form {
   color: #ff4d4d;
   font-size: 13px;
   text-align: center;
-  background: #ff4d4d18;
-  border: 1px solid #ff4d4d44;
+  background: rgba(255, 77, 77, 0.08);
+  border: 1px solid rgba(255, 77, 77, 0.27);
   border-radius: 10px;
   padding: 10px;
   margin-bottom: 8px;
@@ -230,8 +230,8 @@ form {
 .sugerencias {
   width: 100%;
   z-index: 10;
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card2);
+  border: 1px solid var(--border2);
   border-radius: 12px;
   overflow: hidden;
   margin-top: 4px;
@@ -243,10 +243,10 @@ form {
   text-align: left;
   padding: 10px 14px;
   font-size: 13px;
-  color: #ccc;
+  color: var(--text-muted);
   background: none;
   border: none;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border2);
   cursor: pointer;
 }
 
@@ -255,6 +255,6 @@ form {
 }
 
 .sugerencia:hover {
-  background: #2a2a2a;
-  color: white;
+  background: var(--border2);
+  color: var(--text);
 }

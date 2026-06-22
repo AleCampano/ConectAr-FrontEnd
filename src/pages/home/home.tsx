@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listarEventos } from '../../services/eventos'
+import { useTheme } from '../../context/ThemeContext'
+import BottomNav from '../../components/BottomNav/BottomNav'
 import Logo from '../../assets/Logo.png'
 import './home.css'
 
@@ -15,14 +17,19 @@ const CATEGORIAS = [
 
 function Home() {
   const navigate = useNavigate()
+  const { theme, toggleTheme } = useTheme()
   const [eventos, setEventos] = useState<any[]>([])
   const [categoriaActiva, setCategoriaActiva] = useState('')
 
   useEffect(() => {
-    listarEventos(categoriaActiva || undefined)
+    listarEventos()
       .then(setEventos)
       .catch(() => setEventos([]))
-  }, [categoriaActiva])
+  }, [])
+
+  const eventosFiltrados = categoriaActiva
+    ? eventos.filter(ev => ev.event_type === categoriaActiva)
+    : eventos
 
   return (
     <div className="home-wrapper">
@@ -38,11 +45,22 @@ function Home() {
 
         <img src={Logo} alt="ConectAr" className="topbar-logo" />
 
-        <button className="topbar-icon-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="26" height="26">
-            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" strokeLinecap="round" />
-          </svg>
+        <button className="topbar-icon-btn" onClick={toggleTheme} aria-label="Cambiar tema">
+          {theme === 'dark' ? (
+            /* Sol — modo claro */
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+          ) : (
+            /* Luna — modo oscuro */
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          )}
         </button>
       </header>
 
@@ -61,11 +79,11 @@ function Home() {
 
       {/* ── Feed ── */}
       <main className="home-feed">
-        {eventos.length === 0 && (
+        {eventosFiltrados.length === 0 && (
           <p className="home-vacio">No hay eventos en esta categoría todavía.</p>
         )}
 
-        {eventos.map((ev: any) => {
+        {eventosFiltrados.map((ev: any) => {
           const esPrivado = ev.accessibility === 'privado'
           const mapaUrl = `https://www.google.com/maps/search/${encodeURIComponent(ev.location ?? '')}`
           const creatorNombre = ev.users?.full_name ?? ev.users?.username ?? ev.creator_name ?? ev.username ?? 'Usuario'
@@ -81,7 +99,10 @@ function Home() {
 
               {/* autor */}
               <div className="card-autor">
-                <div className="autor-avatar">{iniciales}</div>
+                {ev.users?.avatar_url
+                  ? <img src={ev.users.avatar_url} alt={creatorNombre} className="autor-avatar autor-avatar-foto" />
+                  : <div className="autor-avatar">{iniciales}</div>
+                }
                 <span className="autor-nombre">{creatorNombre}</span>
                 {esPrivado && (
                   <svg className="privado-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16">
@@ -145,32 +166,7 @@ function Home() {
       </main>
 
       {/* ── Bottom Nav ── */}
-      <nav className="bottom-nav">
-        <button className="nav-btn" onClick={() => navigate('/explorar')} aria-label="Explorar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <span>Explorar</span>
-        </button>
-
-        <button className="nav-btn nav-btn-crear" onClick={() => navigate('/crear-evento')} aria-label="Crear evento">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="28" height="28">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="16" />
-            <line x1="8" y1="12" x2="16" y2="12" />
-          </svg>
-          <span>Crear</span>
-        </button>
-
-        <button className="nav-btn" aria-label="Mensajes">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
-            <line x1="22" y1="2" x2="11" y2="13" />
-            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-          </svg>
-          <span>Mensajes</span>
-        </button>
-      </nav>
+      <BottomNav />
 
     </div>
   )
