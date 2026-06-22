@@ -1,26 +1,21 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Header from '../../components/Header/Header'
 import { listarEventos, borrarEvento, unirseEvento, abandonarEvento, listarPersonas, buscarPersonas } from '../../services/eventos'
 import './explorar.css'
 
-const TABS = [
-  { id: 'Todos',    label: '🌐 Todos'   },
-  { id: 'Eventos',  label: '📅 Eventos' },
-  { id: 'Personas', label: '👤 Personas'},
-]
-
 const TENDENCIAS = [
-  { id: 'deporte',  label: '⚽ Deporte'  },
-  { id: 'concierto', label: '🎵 Concierto' },
-  { id: 'cultura',  label: '🎭 Cultura'  },
-  { id: 'fiesta',   label: '🎉 Fiesta'   },
-  { id: 'otro',     label: '✨ Otro'     },
+  { id: '',                label: '🌐 Todos',           count: null },
+  { id: 'deporte',         label: '⚽ Deporte',          count: 24 },
+  { id: 'música',          label: '🎵 Música',           count: 18 },
+  { id: 'salida nocturna', label: '� Previas',          count: 12 },
+  { id: 'estudio',         label: '📚 Estudio',          count: 10 },
+  { id: 'cultura',         label: '🎭 Cultura',          count: 10 },
+  { id: 'otro',            label: '✨ Otros',            count: null },
 ]
 
 function Explorar() {
   const navigate = useNavigate()
-  const [tab, setTab] = useState('Todos')
+  const [tab, setTab] = useState<'Eventos' | 'Personas'>('Eventos')
   const [busqueda, setBusqueda] = useState('')
   const [tendencia, setTendencia] = useState('')
   const [eventos, setEventos] = useState<any[]>([])
@@ -30,6 +25,7 @@ function Explorar() {
   const [buscandoPersonas, setBuscandoPersonas] = useState(false)
   const [amigosAgregados, setAmigosAgregados] = useState<string[]>([])
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const userId = localStorage.getItem('user_id')
 
@@ -47,9 +43,7 @@ function Explorar() {
                 (p: any) => p.user_id === userId || p.users?.id === userId
               )
               if (yaUnido) unidos.push(ev.id)
-            } catch {
-              // ignoramos si falla
-            }
+            } catch { /* ignorar */ }
           })
         )
         setEventosUnidos(unidos)
@@ -58,15 +52,12 @@ function Explorar() {
       .finally(() => setCargandoEventos(false))
   }, [tendencia])
 
-  // Búsqueda de personas con debounce
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
-
-    if (busqueda.length < 2) {
+    if (tab !== 'Personas' || busqueda.length < 2) {
       setPersonas([])
       return
     }
-
     setBuscandoPersonas(true)
     debounceRef.current = setTimeout(() => {
       buscarPersonas(busqueda)
@@ -74,37 +65,20 @@ function Explorar() {
         .catch(() => setPersonas([]))
         .finally(() => setBuscandoPersonas(false))
     }, 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [busqueda, tab])
 
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [busqueda])
-
-  const eventosFiltrados = eventos.filter(ev => {
-    return (
-      ev.title.toLowerCase().includes(busqueda.toLowerCase()) ||
-      ev.description.toLowerCase().includes(busqueda.toLowerCase())
-    )
-  })
-
-  const seleccionarTendencia = (t: string) => {
-    setTendencia(prev => (prev === t ? '' : t))
-  }
-
-  const handleAgregarAmigo = (id: string) => {
-    setAmigosAgregados(prev =>
-      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
-    )
-  }
+  const eventosFiltrados = eventos.filter(ev =>
+    ev.title?.toLowerCase().includes(busqueda.toLowerCase()) ||
+    ev.description?.toLowerCase().includes(busqueda.toLowerCase())
+  )
 
   const handleBorrar = async (id: string) => {
     if (!confirm('¿Seguro que querés borrar este evento?')) return
     try {
       await borrarEvento(id)
       setEventos(prev => prev.filter(ev => ev.id !== id))
-    } catch {
-      alert('No se pudo borrar el evento.')
-    }
+    } catch { alert('No se pudo borrar el evento.') }
   }
 
   const handleUnirse = async (id: string) => {
@@ -116,180 +90,222 @@ function Explorar() {
         await unirseEvento(id)
         setEventosUnidos(prev => [...prev, id])
       }
-    } catch {
-      alert('No se pudo completar la acción.')
-    }
+    } catch { alert('No se pudo completar la acción.') }
   }
 
-  const mostrarEventos = tab === 'Todos' || tab === 'Eventos'
-  const mostrarPersonas = tab === 'Todos' || tab === 'Personas'
-
   return (
-    <div className="pagina">
-      <Header titulo="Explorar" onVolver={() => navigate(-1)} />
+    <div className="exp-wrapper">
 
-      {/* Buscador */}
-      <div className="buscador">
-        <span className="buscador-icono">🔍</span>
+      {/* ── Header ── */}
+      <header className="exp-header">
+        <h1 className="exp-titulo">Explorar</h1>
+      </header>
+
+      {/* ── Buscador ── */}
+      <div className="exp-buscador">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16" className="exp-search-icon">
+          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
         <input
+          ref={inputRef}
           type="text"
           placeholder="Buscá eventos, lugares, personas..."
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
         />
+        {busqueda && (
+          <button className="exp-clear" onClick={() => setBusqueda('')}>✕</button>
+        )}
       </div>
 
-      {/* Tabs */}
-      <div className="tabs">
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            className={t.id === tab ? 'tab tab-activo' : 'tab'}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
+      {/* ── Tabs ── */}
+      <div className="exp-tabs">
+        <button
+          className={`exp-tab ${tab === 'Eventos' ? 'activo' : ''}`}
+          onClick={() => setTab('Eventos')}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="14" height="14">
+            <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          Eventos
+        </button>
+        <button
+          className={`exp-tab ${tab === 'Personas' ? 'activo' : ''}`}
+          onClick={() => setTab('Personas')}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="14" height="14">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Personas
+        </button>
       </div>
 
-      {/* Tendencias */}
-      {(tab === 'Todos' || tab === 'Eventos') && (
-        <>
-          <p className="seccion-label">Tendencias en Buenos Aires</p>
-          <div className="tendencias">
-            {TENDENCIAS.map(t => (
-              <button
-                key={t.id}
-                className={tendencia === t.id ? 'tag tag-activo' : 'tag'}
-                onClick={() => seleccionarTendencia(t.id)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <div className="ubicacion-badge">
-            📍 Mostrando eventos en Buenos Aires, CABA
-          </div>
-        </>
-      )}
+      <div className="exp-scroll">
 
-      {/* Eventos */}
-      {mostrarEventos && (
-        <div className="lista">
-          {tab !== 'Todos' && <p className="seccion-label">Eventos</p>}
-          {cargandoEventos ? (
-            <>
-              {[1, 2, 3].map(i => (
-                <div key={i} className="card-skeleton">
-                  <div className="skeleton-titulo" />
-                  <div className="skeleton-linea" />
-                  <div className="skeleton-linea skeleton-linea-corta" />
-                  <div className="skeleton-footer">
-                    <div className="skeleton-tag" />
-                    <div className="skeleton-btn" />
-                  </div>
-                </div>
+        {/* ── Tendencias (solo en Eventos) ── */}
+        {tab === 'Eventos' && (
+          <>
+            <p className="exp-seccion-label">Tendencias en Buenos Aires</p>
+            <div className="exp-tendencias">
+              {TENDENCIAS.map(t => (
+                <button
+                  key={t.id}
+                  className={`exp-chip ${tendencia === t.id ? 'activo' : ''}`}
+                  onClick={() => setTendencia(prev => (t.id !== '' && prev === t.id) ? '' : t.id)}
+                >
+                  {t.label}{t.count !== null && <> · <span className="chip-count">{t.count}</span></>}
+                </button>
               ))}
-            </>
-          ) : eventosFiltrados.length === 0 ? (
-            <p className="vacio">No hay eventos todavía.</p>
-          ) : (
-            eventosFiltrados.map(ev => {
+            </div>
+
+            <button className="exp-ubicacion-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="12" height="12">
+                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+              </svg>
+              Mostrando eventos en Buenos Aires, CABA
+            </button>
+          </>
+        )}
+
+        {/* ── Feed de Eventos ── */}
+        {tab === 'Eventos' && (
+          <div className="exp-lista">
+            {cargandoEventos ? (
+              [1, 2, 3].map(i => (
+                <div key={i} className="exp-skeleton">
+                  <div className="sk-avatar" />
+                  <div className="sk-titulo" />
+                  <div className="sk-linea" />
+                  <div className="sk-linea sk-corta" />
+                </div>
+              ))
+            ) : eventosFiltrados.length === 0 ? (
+              <p className="exp-vacio">No hay eventos todavía.</p>
+            ) : (
+              eventosFiltrados.map(ev => {
                 const esMio = ev.created_by === userId || ev.user_id === userId
                 const yaUnido = eventosUnidos.includes(ev.id)
+                const iniciales = (ev.creator_name ?? ev.username ?? '?')
+                  .split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
+
                 return (
-                  <div key={ev.id} className="card-evento">
-                    <div className="card-header">
-                      <h2 className="card-titulo">{ev.title}</h2>
+                  <article key={ev.id} className="exp-card">
+                    {/* autor */}
+                    <div className="exp-card-autor">
+                      <div className="exp-avatar">{iniciales}</div>
+                      <span className="exp-autor-nombre">{ev.creator_name ?? ev.username ?? 'Usuario'}</span>
                       {esMio && (
-                        <div className="card-acciones">
-                          <button
-                            className="btn-icono"
-                            title="Editar evento"
-                            onClick={() => navigate(`/crear-evento?editar=${ev.id}`)}
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            className="btn-icono btn-borrar"
-                            title="Borrar evento"
-                            onClick={() => handleBorrar(ev.id)}
-                          >
-                            🗑️
-                          </button>
+                        <div className="exp-card-actions">
+                          <button className="exp-btn-icono" onClick={() => navigate(`/crear-evento?editar=${ev.id}`)}>✏️</button>
+                          <button className="exp-btn-icono exp-btn-borrar" onClick={() => handleBorrar(ev.id)}>🗑️</button>
                         </div>
                       )}
                     </div>
-                    <p className="card-desc">{ev.description}</p>
-                    {ev.image_url && (
-                      <img src={ev.image_url} alt="portada" className="card-portada" />
-                    )}
-                    <div className="card-footer">
-                      <div className="card-tags">
-                        <span className="tag tag-activo">#{ev.event_type}</span>
-                      </div>
-                      <div className="card-botones">
-                        <button
-                          className="btn-participantes"
-                          onClick={() => navigate(`/participantes/${ev.id}`)}
-                        >
-                          👥 Ver participantes
-                        </button>
-                        {!esMio && (
-                          <button
-                            className={yaUnido ? 'btn-unido' : 'btn-unirse'}
-                            onClick={() => handleUnirse(ev.id)}
-                          >
-                            {yaUnido ? '✅ Unido' : '➕ Unirse'}
-                          </button>
-                        )}
+
+                    {/* cuerpo */}
+                    <div className="exp-card-body">
+                      <h2 className="exp-card-titulo">{ev.title}</h2>
+                      {ev.description && <p className="exp-card-desc">{ev.description}</p>}
+                      {ev.image_url && (
+                        <img src={ev.image_url} alt="portada" className="exp-card-img" />
+                      )}
+                      <div className="exp-card-tags">
+                        {ev.event_type && <span className="exp-tag">#{ev.event_type}</span>}
                       </div>
                     </div>
+
+                    {/* footer */}
+                    <div className="exp-card-footer">
+                      <button className="exp-btn-participantes" onClick={() => navigate(`/participantes/${ev.id}`)}>
+                        👥 Ver participantes
+                      </button>
+                      {!esMio && (
+                        <button
+                          className={yaUnido ? 'exp-btn-unido' : 'exp-btn-unirse'}
+                          onClick={() => handleUnirse(ev.id)}
+                        >
+                          {yaUnido ? '✅ Unido' : '+ Unirse'}
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                )
+              })
+            )}
+          </div>
+        )}
+
+        {/* ── Personas ── */}
+        {tab === 'Personas' && (
+          <div className="exp-lista">
+            {buscandoPersonas ? (
+              <p className="exp-vacio">Buscando...</p>
+            ) : busqueda.length < 2 ? (
+              <p className="exp-vacio">Escribí al menos 2 caracteres para buscar personas.</p>
+            ) : personas.length === 0 ? (
+              <p className="exp-vacio">No se encontraron personas.</p>
+            ) : (
+              personas.map(persona => {
+                const agregado = amigosAgregados.includes(persona.id)
+                return (
+                  <div key={persona.id} className="exp-card-persona">
+                    <div className="exp-persona-avatar">
+                      {persona.avatar_url
+                        ? <img src={persona.avatar_url} alt={persona.username} />
+                        : <div className="exp-avatar-ph">👤</div>
+                      }
+                    </div>
+                    <div className="exp-persona-info">
+                      <p className="exp-persona-nombre">{persona.full_name}</p>
+                      <p className="exp-persona-user">@{persona.username}</p>
+                    </div>
+                    <button
+                      className={agregado ? 'exp-btn-agregado' : 'exp-btn-agregar'}
+                      onClick={() => setAmigosAgregados(prev =>
+                        prev.includes(persona.id) ? prev.filter(a => a !== persona.id) : [...prev, persona.id]
+                      )}
+                    >
+                      {agregado ? '✅ Agregado' : '+ Agregar'}
+                    </button>
                   </div>
                 )
               })
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
 
-      {/* Personas */}
-      {mostrarPersonas && (
-        <div className="lista">
-          {tab !== 'Todos' && <p className="seccion-label">Personas</p>}
-          {buscandoPersonas ? (
-            <p className="vacio">Buscando...</p>
-          ) : busqueda.length < 2 ? (
-            <p className="vacio">Escribí al menos 2 caracteres para buscar personas.</p>
-          ) : personas.length === 0 ? (
-            <p className="vacio">No se encontraron personas.</p>
-          ) : (
-            personas.map(persona => (
-              <div key={persona.id} className="card-persona">
-                <div className="persona-avatar">
-                  {persona.avatar_url
-                    ? <img src={persona.avatar_url} alt={persona.username} />
-                    : <div className="avatar-placeholder">👤</div>
-                  }
-                </div>
-                <div className="persona-info">
-                  <p className="persona-nombre">{persona.full_name}</p>
-                  <p className="persona-username">@{persona.username}</p>
-                  {persona.bio && <p className="persona-bio">{persona.bio}</p>}
-                </div>
-                <button
-                  className={amigosAgregados.includes(persona.id) ? 'btn-amigo-agregado' : 'btn-agregar-amigo'}
-                  onClick={() => handleAgregarAmigo(persona.id)}
-                >
-                  {amigosAgregados.includes(persona.id) ? '✅ Agregado' : '➕ Agregar'}
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+      </div>
+
+      {/* ── Bottom Nav ── */}
+      <nav className="bottom-nav">
+        <button className="nav-btn" onClick={() => navigate('/home')} aria-label="Home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          <span>Home</span>
+        </button>
+
+        <button className="nav-btn nav-btn-crear" onClick={() => navigate('/crear-evento')} aria-label="Crear evento">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="28" height="28">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="16" />
+            <line x1="8" y1="12" x2="16" y2="12" />
+          </svg>
+          <span>Crear</span>
+        </button>
+
+        <button className="nav-btn" aria-label="Mensajes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+          <span>Mensajes</span>
+        </button>
+      </nav>
+
     </div>
   )
 }
 
 export default Explorar
-

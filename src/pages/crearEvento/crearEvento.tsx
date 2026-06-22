@@ -7,13 +7,13 @@ import { crearEvento } from '../../services/eventos'
 import { buscarDirecciones } from '../../ubicacionApi'
 
 const TIPOS = [
-  { label: 'Deporte',         emoji: '⚽' },
-  { label: 'Música',          emoji: '🎵' },
-  { label: 'Cultura',         emoji: '🎭' },
-  { label: 'Salida nocturna', emoji: '🌙' },
-  { label: 'Estudio',         emoji: '📚' },
-  { label: 'Gaming',          emoji: '🎮' },
-  { label: 'Aire libre',      emoji: '🌿' },
+  { label: 'Deporte',         emoji: '⚽', value: 'deporte'   },
+  { label: 'Música',          emoji: '🎵', value: 'concierto' },
+  { label: 'Cultura',         emoji: '🎭', value: 'cultura'   },
+  { label: 'Salida nocturna', emoji: '🌙', value: 'fiesta'    },
+  { label: 'Estudio',         emoji: '📚', value: 'otro'      },
+  { label: 'Gaming',          emoji: '🎮', value: 'otro'      },
+  { label: 'Aire libre',      emoji: '🌿', value: 'otro'      },
 ]
 
 const INICIAL = {
@@ -79,20 +79,26 @@ function CrearEvento() {
     const msg = camposFaltantes()
     if (msg) { setError(msg); return }
 
+    const tipoSeleccionado = TIPOS.find(t => t.label === form.tipo)
+
     const nuevoEvento = {
       creator_id: localStorage.getItem('user_id') || '',
       title: form.titulo,
       description: form.descripcion,
       location: form.ubicacion,
-      event_date: `${form.fecha}T${form.hora}:00`,
-      event_type: form.tipo.toLowerCase(),
+      event_date: new Date(`${form.fecha}T${form.hora}:00`).toISOString(),
+      event_type: tipoSeleccionado?.value ?? 'otro',
       accessibility: form.acceso,
       max_participants: form.maxPersonas === '' ? null : Number(form.maxPersonas),
       image_url: form.portada || null
     }
 
-    await crearEvento(nuevoEvento)
-    navigate('/home')
+    try {
+      await crearEvento(nuevoEvento)
+      navigate('/home')
+    } catch (err: any) {
+      setError(err.message || 'Error al crear el evento. Intentá de nuevo.')
+    }
   }
 
   const claseTag = (t: string) => t === form.tipo ? 'tag tag-activo' : 'tag'

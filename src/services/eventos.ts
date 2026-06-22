@@ -16,12 +16,19 @@ export async function obtenerEvento(id: string) {
 }
 
 export async function crearEvento(evento: any) {
+  const token = localStorage.getItem('access_token')
   const res = await fetch(`${BASE_URL}/events`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
     body: JSON.stringify(evento)
   })
-  if (!res.ok) throw new Error('Error al crear evento')
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body?.error || body?.detail || body?.message || `Error al crear evento (${res.status})`)
+  }
   return res.json()
 }
 
