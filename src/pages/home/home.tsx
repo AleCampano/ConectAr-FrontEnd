@@ -68,7 +68,8 @@ function Home() {
         {eventos.map((ev: any) => {
           const esPrivado = ev.accessibility === 'privado'
           const mapaUrl = `https://www.google.com/maps/search/${encodeURIComponent(ev.location ?? '')}`
-          const iniciales = (ev.creator_name ?? ev.username ?? '?')
+          const creatorNombre = ev.users?.full_name ?? ev.users?.username ?? ev.creator_name ?? ev.username ?? 'Usuario'
+          const iniciales = creatorNombre
             .split(' ')
             .map((p: string) => p[0])
             .join('')
@@ -81,7 +82,7 @@ function Home() {
               {/* autor */}
               <div className="card-autor">
                 <div className="autor-avatar">{iniciales}</div>
-                <span className="autor-nombre">{ev.creator_name ?? ev.username ?? 'Usuario'}</span>
+                <span className="autor-nombre">{creatorNombre}</span>
                 {esPrivado && (
                   <svg className="privado-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />

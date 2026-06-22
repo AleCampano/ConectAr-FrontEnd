@@ -87,3 +87,9 @@ export async function buscarPersonas(query: string) {
   if (!res.ok) throw new Error('Error al buscar personas')
   return res.json()
 }
+
+export async function obtenerUsuario(userId: string) {
+  const res = await fetch(`${BASE_URL}/users/${userId}`)
+  if (!res.ok) throw new Error('Usuario no encontrado')
+  return res.json()
+}

@@ -4,13 +4,13 @@ import { listarEventos, borrarEvento, unirseEvento, abandonarEvento, listarPerso
 import './explorar.css'
 
 const TENDENCIAS = [
-  { id: '',                label: '🌐 Todos',           count: null },
-  { id: 'deporte',         label: '⚽ Deporte',          count: 24 },
-  { id: 'música',          label: '🎵 Música',           count: 18 },
-  { id: 'salida nocturna', label: '� Previas',          count: 12 },
-  { id: 'estudio',         label: '📚 Estudio',          count: 10 },
-  { id: 'cultura',         label: '🎭 Cultura',          count: 10 },
-  { id: 'otro',            label: '✨ Otros',            count: null },
+  { id: '',                label: '🌐 Todos'    },
+  { id: 'deporte',         label: '⚽ Deporte'  },
+  { id: 'música',          label: '🎵 Música'   },
+  { id: 'salida nocturna', label: '🌙 Previas'  },
+  { id: 'estudio',         label: '📚 Estudio'  },
+  { id: 'cultura',         label: '🎭 Cultura'  },
+  { id: 'otro',            label: '✨ Otros'    },
 ]
 
 function Explorar() {
@@ -153,7 +153,7 @@ function Explorar() {
                   className={`exp-chip ${tendencia === t.id ? 'activo' : ''}`}
                   onClick={() => setTendencia(prev => (t.id !== '' && prev === t.id) ? '' : t.id)}
                 >
-                  {t.label}{t.count !== null && <> · <span className="chip-count">{t.count}</span></>}
+                  {t.label}
                 </button>
               ))}
             </div>
@@ -183,9 +183,10 @@ function Explorar() {
               <p className="exp-vacio">No hay eventos todavía.</p>
             ) : (
               eventosFiltrados.map(ev => {
-                const esMio = ev.created_by === userId || ev.user_id === userId
+                const esMio = ev.created_by === userId || ev.user_id === userId || ev.creator_id === userId
                 const yaUnido = eventosUnidos.includes(ev.id)
-                const iniciales = (ev.creator_name ?? ev.username ?? '?')
+                const creatorNombre = ev.users?.full_name ?? ev.users?.username ?? ev.creator_name ?? ev.username ?? 'Usuario'
+                const iniciales = creatorNombre
                   .split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
 
                 return (
@@ -193,7 +194,7 @@ function Explorar() {
                     {/* autor */}
                     <div className="exp-card-autor">
                       <div className="exp-avatar">{iniciales}</div>
-                      <span className="exp-autor-nombre">{ev.creator_name ?? ev.username ?? 'Usuario'}</span>
+                      <span className="exp-autor-nombre">{creatorNombre}</span>
                       {esMio && (
                         <div className="exp-card-actions">
                           <button className="exp-btn-icono" onClick={() => navigate(`/crear-evento?editar=${ev.id}`)}>✏️</button>
