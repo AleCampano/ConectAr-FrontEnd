@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { listarEventos } from '../../services/eventos'
 import { useTheme } from '../../context/ThemeContext'
 import BottomNav from '../../components/BottomNav/BottomNav'
+import EventoPopup from '../../components/EventoPopup/EventoPopup'
 import Logo from '../../assets/Logo.png'
 import './home.css'
 
@@ -20,6 +21,7 @@ function Home() {
   const { theme, toggleTheme } = useTheme()
   const [eventos, setEventos] = useState<any[]>([])
   const [categoriaActiva, setCategoriaActiva] = useState('')
+  const [eventoSeleccionado, setEventoSeleccionado] = useState<any | null>(null)
 
   useEffect(() => {
     listarEventos()
@@ -95,7 +97,7 @@ function Home() {
             .toUpperCase()
 
           return (
-            <article key={ev.id} className="feed-card">
+            <article key={ev.id} className="feed-card" onClick={() => setEventoSeleccionado(ev)} style={{ cursor: 'pointer' }}>
 
               {/* autor */}
               <div className="card-autor">
@@ -133,7 +135,7 @@ function Home() {
                 {ev.invite_only && (
                   <button
                     className="card-accion-btn"
-                    onClick={() => navigate(`/participantes/${ev.id}`)}
+                    onClick={e => { e.stopPropagation(); navigate(`/participantes/${ev.id}`) }}
                   >
                     Invitar amigos
                   </button>
@@ -141,7 +143,7 @@ function Home() {
               </div>
 
               {/* acciones */}
-              <div className="card-acciones">
+              <div className="card-acciones" onClick={e => e.stopPropagation()}>
                 <button className="accion-btn" aria-label="Me gusta">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -164,6 +166,14 @@ function Home() {
           )
         })}
       </main>
+
+      {/* ── Popup evento ── */}
+      {eventoSeleccionado && (
+        <EventoPopup
+          evento={eventoSeleccionado}
+          onClose={() => setEventoSeleccionado(null)}
+        />
+      )}
 
       {/* ── Bottom Nav ── */}
       <BottomNav />
