@@ -3,12 +3,16 @@ import { Link, useNavigate } from 'react-router-dom'
 import InputTexto from '../../components/InputTexto/InputTexto'
 import InputPassword from '../../components/InputPassword/InputPassword'
 import Boton from '../../components/Boton/Boton'
-import logo from '../../assets/Logo.png'
+import logoOscuro from '../../assets/Logo.png'
+import logoClaro from '../../assets/Logo claro.png'
 import { login } from '../../services/auth'
+import { useTheme } from '../../context/ThemeContext'
 import './login.css'
 
 function Login() {
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  const logo = theme === 'light' ? logoClaro : logoOscuro
   const [correo, setCorreo] = useState('')
   const [contrasena, setContrasena] = useState('')
   const [error, setError] = useState('')

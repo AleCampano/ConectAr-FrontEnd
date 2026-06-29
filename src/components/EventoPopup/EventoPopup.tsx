@@ -61,18 +61,23 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
 
   useEffect(() => {
     if (!evento?.id) return
-    setCargando(true)
-    listarPersonas(String(evento.id))
-      .then((data: any[]) => {
+    
+    async function cargarParticipantes() {
+      try {
+        setCargando(true)
+        const data = await listarPersonas(String(evento.id))
         setParticipantes(data)
         if (userId) {
           setUnido(data.some((p: any) => String(p.user_id ?? p.id) === userId))
         }
-      })
-      .catch(() => setParticipantes([]))
-      .finally(() => setCargando(false))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])  // solo al montar — el popup siempre se desmonta/monta al abrirse
+      } catch {
+        setParticipantes([])
+      } finally {
+        setCargando(false)
+      }
+    }
+    cargarParticipantes()
+  }, [evento?.id, userId])
 
   async function handleUnirse() {
     if (!localStorage.getItem('access_token')) {
@@ -83,8 +88,6 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
     setError('')
     try {
       await unirseEvento(String(evento.id))
-      // Agregamos al usuario actual al array local sin re-fetchear
-      // (el re-fetch inmediato puede traer datos desactualizados por latencia del backend)
       let nombre = 'Vos'
       let username = ''
       let avatar: string | null = null
@@ -96,7 +99,7 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
           username = u.username ?? ''
           avatar  = u.avatar_url ?? null
         }
-      } catch { /* fallback a defaults */ }
+      } catch { /* fallback */ }
       setParticipantes(prev => [
         ...prev,
         {
@@ -117,7 +120,6 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
     setError('')
     try {
       await abandonarEvento(String(evento.id))
-      // Removemos del array local sin re-fetchear por el mismo motivo
       setParticipantes(prev => prev.filter((p: any) => String(p.user_id ?? p.id) !== userId))
       setUnido(false)
       setConfirmarSalida(false)
@@ -254,7 +256,6 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
               </button>
             )}
 
-            {/* Error */}
             {error && <p className="popup-error">{error}</p>}
 
             {/* Botón acción */}

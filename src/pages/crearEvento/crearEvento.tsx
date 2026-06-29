@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header/Header'
 import Boton from '../../components/Boton/Boton'
@@ -8,7 +8,7 @@ import { crearEvento } from '../../services/eventos'
 import { buscarDirecciones } from '../../ubicacionApi'
 
 const TIPOS = [
-  { label: 'Deporte',         emoji: '⚽', value: 'deporte'   },
+  { label: 'Deporte',        emoji: '⚽', value: 'deporte'   },
   { label: 'Música',          emoji: '🎵', value: 'concierto' },
   { label: 'Cultura',         emoji: '🎭', value: 'cultura'   },
   { label: 'Salida nocturna', emoji: '🌙', value: 'fiesta'    },
@@ -17,70 +17,73 @@ const TIPOS = [
   { label: 'Aire libre',      emoji: '🌿', value: 'otro'      },
 ]
 
-const INICIAL = {
-  titulo: '',
-  fecha: '',
-  hora: '',
-  ubicacion: '',
-  descripcion: '',
-  tipo: '',
-  maxPersonas: '',
-  acceso: 'publico',
-  portada: ''
-}
-
-function CrearEvento() {
+export default function CrearEvento() {
   const navigate = useNavigate()
-  const [form, setForm] = useState(INICIAL)
+  
+  // Un solo estado para todo el formulario, simple y directo
+  const [form, setForm] = useState({
+    titulo: '',
+    fecha: '',
+    hora: '',
+    ubicacion: '',
+    descripcion: '',
+    tipo: '',
+    maxPersonas: '',
+    acceso: 'publico',
+    portada: ''
+  })
+
   const [error, setError] = useState('')
-  const [sugerencias, setSugerencias] = useState<{ label: string; lat: number; lng: number }[]>([])
+  const [sugerencias, setSugerencias] = useState<any[]>([])
   const [coordenadas, setCoordenadas] = useState<[number, number] | null>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [buscandoUbicacion, setBuscandoUbicacion] = useState(false)
 
-  const set = (campo: string) => (valor: any) => {
+  // Función simple para actualizar cualquier campo del formulario
+  const actualizarCampo = (campo: string, valor: any) => {
     setError('')
-    setForm(f => ({ ...f, [campo]: valor }))
+    setForm({ ...form, [campo]: valor })
   }
 
-  const handleUbicacionChange = (valor: string) => {
-    set('ubicacion')(valor)
+  // En vez de "debounce" complejo, buscamos manualmente al hacer clic en el botón
+  const manejarBuscarUbicacion = async () => {
+    if (form.ubicacion.length < 3) return
+    
+    setBuscandoUbicacion(true)
     setSugerencias([])
-    setCoordenadas(null)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (valor.length < 3) return
-    debounceRef.current = setTimeout(async () => {
-      const resultados = await buscarDirecciones(valor)
+    
+    try {
+      const resultados = await buscarDirecciones(form.ubicacion)
       setSugerencias(resultados)
-    }, 400)
+    } catch (err) {
+      setError('Error al buscar la dirección')
+    } finally {
+      setBuscandoUbicacion(false)
+    }
   }
 
-  const seleccionarSugerencia = (s: { label: string; lat: number; lng: number }) => {
-    set('ubicacion')(s.label)
+  const seleccionarSugerencia = (s: any) => {
+    actualizarCampo('ubicacion', s.label)
     setCoordenadas([s.lat, s.lng])
-    setSugerencias([])
+    setSugerencias([]) // Limpiamos la lista una vez seleccionado
   }
 
   const handleImagen = (e: any) => {
     const archivo = e.target.files[0]
     if (!archivo) return
-    const reader = new FileReader()
-    reader.onload = () => set('portada')(reader.result)
-    reader.readAsDataURL(archivo)
-  }
 
-  const camposFaltantes = () => {
-    if (!form.titulo)    return 'Hay campos vacíos'
-    if (!form.tipo)      return 'Hay campos vacíos'
-    if (!form.fecha)     return 'Hay campos vacíos'
-    if (!form.hora)      return 'Hay campos vacíos'
-    if (!form.ubicacion) return 'Hay campos vacíos'
-    return null
+    const reader = new FileReader()
+    reader.onload = () => actualizarCampo('portada', reader.result)
+    reader.readAsDataURL(archivo)
   }
 
   const handleSubmit = async (e: any) => {
     e.preventDefault()
-    const msg = camposFaltantes()
-    if (msg) { setError(msg); return }
+
+    // Validación directa y fácil de leer
+    if (!form.titulo || !form.tipo || !form.fecha || !form.hora || !form.ubicacion) {
+      setError('Hay campos vacíos obligatorios')
+      return
+    }
 
     const tipoSeleccionado = TIPOS.find(t => t.label === form.tipo)
 
@@ -104,8 +107,6 @@ function CrearEvento() {
     }
   }
 
-  const claseTag = (t: string) => t === form.tipo ? 'tag tag-activo' : 'tag'
-  const claseAcceso = (v: string) => v === form.acceso ? 'toggle toggle-activo' : 'toggle'
   const hoy = new Date().toISOString().split('T')[0]
 
   return (
@@ -116,31 +117,25 @@ function CrearEvento() {
 
         {/* Portada */}
         <label className="subir-imagen">
-          {form.portada
-            ? <img src={form.portada} alt="portada" className="portada-preview" />
-            : <div className="subir-imagen-placeholder">
-                <div className="subir-imagen-icono">
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="3" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <path d="M21 15l-5-5L5 21" />
-                  </svg>
-                </div>
-                <span>Agregar foto de portada</span>
-              </div>
-          }
+          {form.portada ? (
+            <img src={form.portada} alt="portada" className="portada-preview" />
+          ) : (
+            <div className="subir-imagen-placeholder">
+              <span>📷 Agregar foto de portada</span>
+            </div>
+          )}
           <input type="file" accept="image/*" onChange={handleImagen} hidden />
         </label>
 
         {/* Nombre */}
         <div className="seccion">
-          <p className="seccion-label">Nombre del evento <span className="requerido">*</span></p>
+          <p className="seccion-label">Nombre del evento *</p>
           <div className="campo">
             <input
               type="text"
               placeholder="Ej: Fútbol 5 en Palermo"
               value={form.titulo}
-              onChange={e => set('titulo')(e.target.value)}
+              onChange={e => actualizarCampo('titulo', e.target.value)}
             />
           </div>
         </div>
@@ -152,21 +147,21 @@ function CrearEvento() {
             className="textarea"
             placeholder="Contá de qué se trata..."
             value={form.descripcion}
-            onChange={e => set('descripcion')(e.target.value)}
+            onChange={e => actualizarCampo('descripcion', e.target.value)}
             rows={4}
           />
         </div>
 
         {/* Categoría */}
         <div className="seccion">
-          <p className="seccion-label">Categoría <span className="requerido">*</span></p>
+          <p className="seccion-label">Categoría *</p>
           <div className="tags">
             {TIPOS.map(t => (
               <button
                 key={t.label}
                 type="button"
-                className={claseTag(t.label)}
-                onClick={() => set('tipo')(t.label)}
+                className={t.label === form.tipo ? 'tag tag-activo' : 'tag'}
+                onClick={() => actualizarCampo('tipo', t.label)}
               >
                 {t.emoji} {t.label}
               </button>
@@ -175,44 +170,54 @@ function CrearEvento() {
         </div>
 
         {/* Fecha y Hora */}
-<div className="seccion">
-  <div className="fila-dos">
-    <div>
-      <p className="seccion-label">📅 Fecha <span className="requerido">*</span></p>
-      <div className="campo">
-        <input
-          type="date"
-          value={form.fecha}
-          min={hoy}
-          onChange={e => set('fecha')(e.target.value)}
-        />
-      </div>
-    </div>
-    <div>
-      <p className="seccion-label">Hora</p>
-      <div className="campo">
-        <input
-          type="time"
-          value={form.hora}
-          onChange={e => set('hora')(e.target.value)}
-        />
-      </div>
-    </div>
-  </div>
-</div>
+        <div className="seccion">
+          <div className="fila-dos">
+            <div>
+              <p className="seccion-label">📅 Fecha *</p>
+              <div className="campo">
+                <input
+                  type="date"
+                  value={form.fecha}
+                  min={hoy}
+                  onChange={e => actualizarCampo('fecha', e.target.value)}
+                />
+              </div>
+            </div>
+            <div>
+              <p className="seccion-label">Hora</p>
+              <div className="campo">
+                <input
+                  type="time"
+                  value={form.hora}
+                  onChange={e => actualizarCampo('hora', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Ubicación */}
         <div className="seccion">
-          <p className="seccion-label"><span>📍</span> Ubicación <span className="requerido">*</span></p>
-          <div className="campo">
+          <p className="seccion-label">📍 Ubicación *</p>
+          <div className="campo" style={{ display: 'flex', gap: '8px' }}>
             <input
               type="text"
               placeholder="Ej: Parque Centenario, CABA"
               value={form.ubicacion}
-              onChange={e => handleUbicacionChange(e.target.value)}
+              onChange={e => actualizarCampo('ubicacion', e.target.value)}
               autoComplete="off"
             />
+            <button 
+              type="button" 
+              onClick={manejarBuscarUbicacion}
+              className="boton-buscar-ubi" // Podés estilizar este botón en tu CSS
+            >
+              Buscar
+            </button>
           </div>
+
+          {buscandoUbicacion && <p className="cargando-texto">Buscando direcciones...</p>}
+
           {sugerencias.length > 0 && (
             <div className="sugerencias">
               {sugerencias.map((s, i) => (
@@ -232,14 +237,14 @@ function CrearEvento() {
 
         {/* Máximo de personas */}
         <div className="seccion">
-          <p className="seccion-label"><span>👥</span> Máximo de personas</p>
+          <p className="seccion-label">👥 Máximo de personas</p>
           <div className="campo">
             <input
               type="number"
               placeholder="Ej: 10"
               value={form.maxPersonas}
               min={1}
-              onChange={e => set('maxPersonas')(e.target.value)}
+              onChange={e => actualizarCampo('maxPersonas', e.target.value)}
             />
           </div>
         </div>
@@ -248,8 +253,20 @@ function CrearEvento() {
         <div className="seccion">
           <p className="seccion-label">Accesibilidad</p>
           <div className="toggle-grupo">
-            <button type="button" className={claseAcceso('publico')} onClick={() => set('acceso')('publico')}>🌐 Público</button>
-            <button type="button" className={claseAcceso('privado')} onClick={() => set('acceso')('privado')}>🔒 Privado</button>
+            <button 
+              type="button" 
+              className={form.acceso === 'publico' ? 'toggle toggle-activo' : 'toggle'} 
+              onClick={() => actualizarCampo('acceso', 'publico')}
+            >
+              🌐 Público
+            </button>
+            <button 
+              type="button" 
+              className={form.acceso === 'privado' ? 'toggle toggle-activo' : 'toggle'} 
+              onClick={() => actualizarCampo('acceso', 'privado')}
+            >
+              🔒 Privado
+            </button>
           </div>
         </div>
 
@@ -261,5 +278,3 @@ function CrearEvento() {
     </div>
   )
 }
-
-export default CrearEvento

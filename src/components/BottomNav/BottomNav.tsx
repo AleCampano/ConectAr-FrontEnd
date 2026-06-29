@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 
-function BottomNav() {
+export default function BottomNav() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
 
@@ -9,7 +9,7 @@ function BottomNav() {
   return (
     <nav className="bottom-nav">
 
-      {/* Izquierda: Explorar si estás en Home, Home si estás en Explorar (o cualquier otra) */}
+      {/* Izquierda: Explorar si estás en Home, Home si estás en Explorar */}
       {enHome ? (
         <button className="nav-btn" onClick={() => navigate('/explorar')} aria-label="Explorar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
@@ -54,5 +54,3 @@ function BottomNav() {
     </nav>
   )
 }
-
-export default BottomNav

@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import EventoPopup from '../../components/EventoPopup/EventoPopup'
 import Logo from '../../assets/Logo.png'
+import LogoClaro from '../../assets/Logo claro.png'
 import './home.css'
 
 const CATEGORIAS = [
@@ -16,7 +17,7 @@ const CATEGORIAS = [
   { id: 'otro',      label: '✨ Otros'           },
 ]
 
-function Home() {
+export default function Home() {
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
   const [eventos, setEventos] = useState<any[]>([])
@@ -24,9 +25,15 @@ function Home() {
   const [eventoSeleccionado, setEventoSeleccionado] = useState<any | null>(null)
 
   useEffect(() => {
-    listarEventos()
-      .then(setEventos)
-      .catch(() => setEventos([]))
+    async function cargarEventos() {
+      try {
+        const data = await listarEventos()
+        setEventos(data)
+      } catch {
+        setEventos([])
+      }
+    }
+    cargarEventos()
   }, [])
 
   const eventosFiltrados = categoriaActiva
@@ -45,11 +52,10 @@ function Home() {
           </svg>
         </button>
 
-        <img src={Logo} alt="ConectAr" className="topbar-logo" />
+        <img src={theme === 'light' ? LogoClaro : Logo} alt="ConectAr" className="topbar-logo" />
 
         <button className="topbar-icon-btn" onClick={toggleTheme} aria-label="Cambiar tema">
           {theme === 'dark' ? (
-            /* Sol — modo claro */
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
               <circle cx="12" cy="12" r="5" />
               <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
@@ -58,7 +64,6 @@ function Home() {
               <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
             </svg>
           ) : (
-            /* Luna — modo oscuro */
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
@@ -89,12 +94,7 @@ function Home() {
           const esPrivado = ev.accessibility === 'privado'
           const mapaUrl = `https://www.google.com/maps/search/${encodeURIComponent(ev.location ?? '')}`
           const creatorNombre = ev.users?.full_name ?? ev.users?.username ?? ev.creator_name ?? ev.username ?? 'Usuario'
-          const iniciales = creatorNombre
-            .split(' ')
-            .map((p: string) => p[0])
-            .join('')
-            .slice(0, 2)
-            .toUpperCase()
+          const iniciales = creatorNombre.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
 
           return (
             <article key={ev.id} className="feed-card" onClick={() => setEventoSeleccionado(ev)} style={{ cursor: 'pointer' }}>
@@ -126,7 +126,13 @@ function Home() {
                 <div className="card-tags">
                   {ev.event_type && <span className="tag-chip">#{ev.event_type}</span>}
                   {ev.location && (
-                    <a href={mapaUrl} target="_blank" rel="noreferrer" className="tag-chip tag-chip-link">
+                    <a 
+                      href={mapaUrl} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className="tag-chip tag-chip-link"
+                      onClick={e => e.stopPropagation()}
+                    >
                       📍 {ev.location.split(',')[0]}
                     </a>
                   )}
@@ -181,5 +187,3 @@ function Home() {
     </div>
   )
 }
-
-export default Home

@@ -3,12 +3,16 @@ import { Link, useNavigate } from 'react-router-dom'
 import InputTexto from '../../components/InputTexto/InputTexto'
 import InputPassword from '../../components/InputPassword/InputPassword'
 import Boton from '../../components/Boton/Boton'
-import logo from '../../assets/logo.png'
+import logoOscuro from '../../assets/Logo.png'
+import logoClaro from '../../assets/Logo claro.png'
 import './registrarse.css'
 import { registrarse } from '../../services/auth'
+import { useTheme } from '../../context/ThemeContext'
 
 function Registrarse() {
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  const logo = theme === 'light' ? logoClaro : logoOscuro
   const [nombreCompleto, setNombreCompleto] = useState('')
   const [usuario, setUsuario] = useState('')
   const [correo, setCorreo] = useState('')
