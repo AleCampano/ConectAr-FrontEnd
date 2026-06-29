@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header/Header'
 import Boton from '../../components/Boton/Boton'
+import MapaPicker from '../../components/MapaPicker/MapaPicker'
 import './crearEvento.css'
 import { crearEvento } from '../../services/eventos'
 import { buscarDirecciones } from '../../ubicacionApi'
@@ -32,7 +33,8 @@ function CrearEvento() {
   const navigate = useNavigate()
   const [form, setForm] = useState(INICIAL)
   const [error, setError] = useState('')
-  const [sugerencias, setSugerencias] = useState<{ label: string }[]>([])
+  const [sugerencias, setSugerencias] = useState<{ label: string; lat: number; lng: number }[]>([])
+  const [coordenadas, setCoordenadas] = useState<[number, number] | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const set = (campo: string) => (valor: any) => {
@@ -43,6 +45,7 @@ function CrearEvento() {
   const handleUbicacionChange = (valor: string) => {
     set('ubicacion')(valor)
     setSugerencias([])
+    setCoordenadas(null)
     if (debounceRef.current) clearTimeout(debounceRef.current)
     if (valor.length < 3) return
     debounceRef.current = setTimeout(async () => {
@@ -51,8 +54,9 @@ function CrearEvento() {
     }, 400)
   }
 
-  const seleccionarSugerencia = (label: string) => {
-    set('ubicacion')(label)
+  const seleccionarSugerencia = (s: { label: string; lat: number; lng: number }) => {
+    set('ubicacion')(s.label)
+    setCoordenadas([s.lat, s.lng])
     setSugerencias([])
   }
 
@@ -65,12 +69,11 @@ function CrearEvento() {
   }
 
   const camposFaltantes = () => {
-    if (!form.titulo)      return 'Hay campos vacíos'
-    if (!form.descripcion) return 'Hay campos vacíos'
-    if (!form.tipo)        return 'Hay campos vacíos'
-    if (!form.fecha)       return 'Hay campos vacíos'
-    if (!form.hora)        return 'Hay campos vacíos'
-    if (!form.ubicacion)   return 'Hay campos vacíos'
+    if (!form.titulo)    return 'Hay campos vacíos'
+    if (!form.tipo)      return 'Hay campos vacíos'
+    if (!form.fecha)     return 'Hay campos vacíos'
+    if (!form.hora)      return 'Hay campos vacíos'
+    if (!form.ubicacion) return 'Hay campos vacíos'
     return null
   }
 
@@ -217,13 +220,14 @@ function CrearEvento() {
                   key={i}
                   type="button"
                   className="sugerencia"
-                  onClick={() => seleccionarSugerencia(s.label)}
+                  onClick={() => seleccionarSugerencia(s)}
                 >
                   {s.label}
                 </button>
               ))}
             </div>
           )}
+          {coordenadas && <MapaPicker posicion={coordenadas} />}
         </div>
 
         {/* Máximo de personas */}
