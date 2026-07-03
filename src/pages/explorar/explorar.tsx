@@ -23,6 +23,7 @@ export default function Explorar() {
   const [eventosUnidos, setEventosUnidos] = useState<string[]>([])
   const [personas, setPersonas] = useState<any[]>([])
   const [buscandoPersonas, setBuscandoPersonas] = useState(false)
+  const [busquedaRealizada, setBusquedaRealizada] = useState(false)
   const [amigosAgregados, setAmigosAgregados] = useState<string[]>([])
 
   const userId = localStorage.getItem('user_id')
@@ -67,6 +68,7 @@ export default function Explorar() {
     }
 
     setBuscandoPersonas(true)
+    setBusquedaRealizada(false)
     try {
       const resultado = await buscarPersonas(busqueda)
       setPersonas(resultado)
@@ -74,6 +76,7 @@ export default function Explorar() {
       setPersonas([])
     } finally {
       setBuscandoPersonas(false)
+      setBusquedaRealizada(true)
     }
   }
 
@@ -143,7 +146,7 @@ export default function Explorar() {
         </button>
         <button
           className={`exp-tab ${tab === 'Personas' ? 'activo' : ''}`}
-          onClick={() => { setTab('Personas'); setBusqueda(''); setPersonas([]); }}
+          onClick={() => { setTab('Personas'); setBusqueda(''); setPersonas([]); setBusquedaRealizada(false); }}
         >
           👥 Personas
         </button>
@@ -235,6 +238,8 @@ export default function Explorar() {
           <div className="exp-lista">
             {buscandoPersonas ? (
               <p className="exp-vacio">Buscando personas...</p>
+            ) : personas.length === 0 && busquedaRealizada ? (
+              <p className="exp-vacio">No se encontró ninguna persona con ese nombre.</p>
             ) : personas.length === 0 ? (
               <p className="exp-vacio">Escribí el nombre de alguien y dale a Buscar.</p>
             ) : (

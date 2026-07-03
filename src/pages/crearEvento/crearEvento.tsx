@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Header from '../../components/Header/Header'
 import Boton from '../../components/Boton/Boton'
 import MapaPicker from '../../components/MapaPicker/MapaPicker'
@@ -19,8 +19,9 @@ const TIPOS = [
 
 export default function CrearEvento() {
   const navigate = useNavigate()
-  
-  // Un solo estado para todo el formulario, simple y directo
+  const [searchParams] = useSearchParams()
+  const modoEdicion = searchParams.get('editar') !== null
+
   const [form, setForm] = useState({
     titulo: '',
     fecha: '',
@@ -37,40 +38,55 @@ export default function CrearEvento() {
   const [sugerencias, setSugerencias] = useState<any[]>([])
   const [coordenadas, setCoordenadas] = useState<[number, number] | null>(null)
   const [buscandoUbicacion, setBuscandoUbicacion] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Busca automáticamente cuando el usuario deja de escribir por 600ms
+  useEffect(() => {
+    const texto = form.ubicacion.trim()
+
+    if (texto.length < 3) {
+      setSugerencias([])
+      setBuscandoUbicacion(false)
+      return
+    }
+
+    // Mostramos el loader inmediatamente al empezar a escribir
+    setBuscandoUbicacion(true)
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const resultados = await buscarDirecciones(texto)
+        setSugerencias(resultados)
+      } catch {
+        setError('Error al buscar la dirección')
+      } finally {
+        setBuscandoUbicacion(false)
+      }
+    }, 600)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [form.ubicacion])
 
   // Función simple para actualizar cualquier campo del formulario
   const actualizarCampo = (campo: string, valor: any) => {
     setError('')
-    setForm({ ...form, [campo]: valor })
-  }
-
-  // En vez de "debounce" complejo, buscamos manualmente al hacer clic en el botón
-  const manejarBuscarUbicacion = async () => {
-    if (form.ubicacion.length < 3) return
-    
-    setBuscandoUbicacion(true)
-    setSugerencias([])
-    
-    try {
-      const resultados = await buscarDirecciones(form.ubicacion)
-      setSugerencias(resultados)
-    } catch (err) {
-      setError('Error al buscar la dirección')
-    } finally {
-      setBuscandoUbicacion(false)
-    }
+    setForm(prev => ({ ...prev, [campo]: valor }))
   }
 
   const seleccionarSugerencia = (s: any) => {
-    actualizarCampo('ubicacion', s.label)
+    setForm(prev => ({ ...prev, ubicacion: s.label }))
     setCoordenadas([s.lat, s.lng])
-    setSugerencias([]) // Limpiamos la lista una vez seleccionado
+    setSugerencias([])
+    setBuscandoUbicacion(false)
   }
 
   const handleImagen = (e: any) => {
     const archivo = e.target.files[0]
     if (!archivo) return
-
     const reader = new FileReader()
     reader.onload = () => actualizarCampo('portada', reader.result)
     reader.readAsDataURL(archivo)
@@ -79,7 +95,6 @@ export default function CrearEvento() {
   const handleSubmit = async (e: any) => {
     e.preventDefault()
 
-    // Validación directa y fácil de leer
     if (!form.titulo || !form.tipo || !form.fecha || !form.hora || !form.ubicacion) {
       setError('Hay campos vacíos obligatorios')
       return
@@ -111,7 +126,7 @@ export default function CrearEvento() {
 
   return (
     <div className="pagina">
-      <Header titulo="Crear evento" onVolver={() => navigate(-1)} />
+      <Header titulo={modoEdicion ? 'Editar evento' : 'Crear evento'} onVolver={() => navigate(-1)} />
 
       <form onSubmit={handleSubmit}>
 
@@ -199,7 +214,7 @@ export default function CrearEvento() {
         {/* Ubicación */}
         <div className="seccion">
           <p className="seccion-label">📍 Ubicación *</p>
-          <div className="campo" style={{ display: 'flex', gap: '8px' }}>
+          <div className="campo ubicacion-campo">
             <input
               type="text"
               placeholder="Ej: Parque Centenario, CABA"
@@ -207,18 +222,17 @@ export default function CrearEvento() {
               onChange={e => actualizarCampo('ubicacion', e.target.value)}
               autoComplete="off"
             />
-            <button 
-              type="button" 
-              onClick={manejarBuscarUbicacion}
-              className="boton-buscar-ubi" // Podés estilizar este botón en tu CSS
-            >
-              Buscar
-            </button>
           </div>
 
-          {buscandoUbicacion && <p className="cargando-texto">Buscando direcciones...</p>}
+          {buscandoUbicacion && (
+            <div className="sugerencias sugerencias-skeleton">
+              <div className="sugerencia-skeleton" />
+              <div className="sugerencia-skeleton" />
+              <div className="sugerencia-skeleton" />
+            </div>
+          )}
 
-          {sugerencias.length > 0 && (
+          {!buscandoUbicacion && sugerencias.length > 0 && (
             <div className="sugerencias">
               {sugerencias.map((s, i) => (
                 <button
@@ -232,6 +246,7 @@ export default function CrearEvento() {
               ))}
             </div>
           )}
+
           {coordenadas && <MapaPicker posicion={coordenadas} />}
         </div>
 
@@ -253,16 +268,16 @@ export default function CrearEvento() {
         <div className="seccion">
           <p className="seccion-label">Accesibilidad</p>
           <div className="toggle-grupo">
-            <button 
-              type="button" 
-              className={form.acceso === 'publico' ? 'toggle toggle-activo' : 'toggle'} 
+            <button
+              type="button"
+              className={form.acceso === 'publico' ? 'toggle toggle-activo' : 'toggle'}
               onClick={() => actualizarCampo('acceso', 'publico')}
             >
               🌐 Público
             </button>
-            <button 
-              type="button" 
-              className={form.acceso === 'privado' ? 'toggle toggle-activo' : 'toggle'} 
+            <button
+              type="button"
+              className={form.acceso === 'privado' ? 'toggle toggle-activo' : 'toggle'}
               onClick={() => actualizarCampo('acceso', 'privado')}
             >
               🔒 Privado
@@ -272,7 +287,7 @@ export default function CrearEvento() {
 
         {error && <p className="error-form">{error}</p>}
 
-        <Boton texto="Publicar evento 🚀" tipo="submit" />
+        <Boton texto={modoEdicion ? 'Guardar cambios ✅' : 'Publicar evento 🚀'} tipo="submit" />
 
       </form>
     </div>

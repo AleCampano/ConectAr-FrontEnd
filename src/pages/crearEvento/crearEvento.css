@@ -227,6 +227,15 @@ form {
 }
 
 /* ── Autocompletado ubicación ── */
+.ubicacion-campo {
+  position: relative;
+}
+
+.ubicacion-campo input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .sugerencias {
   width: 100%;
   z-index: 10;

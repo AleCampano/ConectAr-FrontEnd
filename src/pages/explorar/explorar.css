@@ -174,7 +174,7 @@
 /* ── Card evento ── */
 .exp-card {
   background: var(--bg-card);
-  border: 1.5px solid var(--accent);
+  border: 1.5px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
 }
