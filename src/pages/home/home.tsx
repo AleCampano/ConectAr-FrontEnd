@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { listarEventos } from '../../services/eventos'
-import { useTheme } from '../../context/ThemeContext'
+import { listarEventos, likeEvento, unlikeEvento, obtenerLikes } from '../../services/eventos'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import EventoPopup from '../../components/EventoPopup/EventoPopup'
 import Logo from '../../assets/Logo.png'
-import LogoClaro from '../../assets/Logo claro.png'
 import './home.css'
 
 const CATEGORIAS = [
@@ -19,22 +17,71 @@ const CATEGORIAS = [
 
 export default function Home() {
   const navigate = useNavigate()
-  const { theme, toggleTheme } = useTheme()
   const [eventos, setEventos] = useState<any[]>([])
   const [categoriaActiva, setCategoriaActiva] = useState('')
   const [eventoSeleccionado, setEventoSeleccionado] = useState<any | null>(null)
+  const [likesMap, setLikesMap] = useState<Record<string, number>>({})
+  const [likedEventos, setLikedEventos] = useState<string[]>([])
+
+  const userId = localStorage.getItem('user_id')
 
   useEffect(() => {
     async function cargarEventos() {
       try {
         const data = await listarEventos()
         setEventos(data)
+
+        // Cargar likes de cada evento en paralelo
+        const resultados = await Promise.allSettled(
+          data.map((ev: any) => obtenerLikes(String(ev.id)))
+        )
+
+        const nuevoLikesMap: Record<string, number> = {}
+        const nuevosLikedEventos: string[] = []
+
+        resultados.forEach((res, i) => {
+          const evId = String(data[i].id)
+          if (res.status === 'fulfilled') {
+            const likes: any[] = Array.isArray(res.value) ? res.value : (res.value?.likes ?? [])
+            nuevoLikesMap[evId] = likes.length
+            if (userId && likes.some((l: any) => String(l.user_id ?? l.id) === userId)) {
+              nuevosLikedEventos.push(evId)
+            }
+          } else {
+            nuevoLikesMap[evId] = 0
+          }
+        })
+
+        setLikesMap(nuevoLikesMap)
+        setLikedEventos(nuevosLikedEventos)
       } catch {
         setEventos([])
       }
     }
     cargarEventos()
-  }, [])
+  }, [userId])
+
+  async function handleLike(e: React.MouseEvent, evId: string) {
+    e.stopPropagation()
+    if (!localStorage.getItem('access_token')) return
+
+    const yaLiked = likedEventos.includes(evId)
+    // Optimistic update
+    setLikedEventos(prev => yaLiked ? prev.filter(id => id !== evId) : [...prev, evId])
+    setLikesMap(prev => ({ ...prev, [evId]: Math.max(0, (prev[evId] ?? 0) + (yaLiked ? -1 : 1)) }))
+
+    try {
+      if (yaLiked) {
+        await unlikeEvento(evId)
+      } else {
+        await likeEvento(evId)
+      }
+    } catch {
+      // Revertir si falla
+      setLikedEventos(prev => yaLiked ? [...prev, evId] : prev.filter(id => id !== evId))
+      setLikesMap(prev => ({ ...prev, [evId]: Math.max(0, (prev[evId] ?? 0) + (yaLiked ? 1 : -1)) }))
+    }
+  }
 
   const eventosFiltrados = categoriaActiva
     ? eventos.filter(ev => ev.event_type === categoriaActiva)
@@ -52,23 +99,22 @@ export default function Home() {
           </svg>
         </button>
 
-        <img src={theme === 'light' ? LogoClaro : Logo} alt="ConectAr" className="topbar-logo" />
+        <img src={Logo} alt="ConectAr" className="topbar-logo" />
 
-        <button className="topbar-icon-btn" onClick={toggleTheme} aria-label="Cambiar tema">
-          {theme === 'dark' ? (
+          <button
+            className="topbar-icon-btn"
+            aria-label="Notificaciones"
+            onClick={() => {
+              if ('Notification' in window) {
+                Notification.requestPermission()
+              }
+            }}
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
-              <circle cx="12" cy="12" r="5" />
-              <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-              <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-          )}
-        </button>
+          </button>
       </header>
 
       {/* ── Filtros ── */}
@@ -92,6 +138,7 @@ export default function Home() {
 
         {eventosFiltrados.map((ev: any) => {
           const esPrivado = ev.accessibility === 'privado'
+          const esMio = String(ev.creator_id ?? ev.created_by ?? ev.user_id ?? ev.users?.id ?? '') === String(userId ?? '')
           const mapaUrl = `https://www.google.com/maps/search/${encodeURIComponent(ev.location ?? '')}`
           const creatorNombre = ev.users?.full_name ?? ev.users?.username ?? ev.creator_name ?? ev.username ?? 'Usuario'
           const iniciales = creatorNombre.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
@@ -106,11 +153,17 @@ export default function Home() {
                   : <div className="autor-avatar">{iniciales}</div>
                 }
                 <span className="autor-nombre">{creatorNombre}</span>
+                {esMio && <span className="card-badge-mio">Tu evento</span>}
                 {esPrivado && (
                   <svg className="privado-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
+                )}
+                {esMio && (
+                  <div className="card-autor-actions" onClick={e => e.stopPropagation()}>
+                    <button onClick={() => navigate(`/crear-evento?editar=${ev.id}`)}>✏️</button>
+                  </div>
                 )}
               </div>
 
@@ -150,10 +203,17 @@ export default function Home() {
 
               {/* acciones */}
               <div className="card-acciones" onClick={e => e.stopPropagation()}>
-                <button className="accion-btn" aria-label="Me gusta">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
+                <button
+                  className={`accion-btn${likedEventos.includes(String(ev.id)) ? ' accion-btn-liked' : ''}`}
+                  aria-label="Me gusta"
+                  onClick={e => handleLike(e, String(ev.id))}
+                >
+                  <svg viewBox="0 0 24 24" fill={likedEventos.includes(String(ev.id)) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" width="20" height="20">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                   </svg>
+                  {(likesMap[String(ev.id)] ?? 0) > 0 && (
+                    <span className="accion-count">{likesMap[String(ev.id)]}</span>
+                  )}
                 </button>
                 <button className="accion-btn" aria-label="Comentar">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">

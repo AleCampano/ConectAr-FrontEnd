@@ -48,6 +48,12 @@
   color: var(--accent);
 }
 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* ── Filtros ── */
 .home-filtros {
   display: flex;
@@ -153,6 +159,38 @@
   flex-shrink: 0;
 }
 
+.card-badge-mio {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent);
+  border-radius: 99px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+}
+
+.card-autor-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.card-autor-actions button {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 3px 7px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  color: var(--text);
+}
+
+.card-autor-actions button:hover {
+  background: var(--border2);
+}
+
 /* body */
 .card-body {
   padding: 0 14px 12px;
@@ -252,6 +290,21 @@
 .accion-btn:hover {
   color: var(--accent);
   background: var(--accent-bg);
+}
+
+.accion-btn-liked {
+  color: #e0245e;
+}
+
+.accion-btn-liked:hover {
+  color: #c01a50;
+  background: rgba(224, 36, 94, 0.1);
+}
+
+.accion-count {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 

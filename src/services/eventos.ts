@@ -93,3 +93,39 @@ export async function obtenerUsuario(userId: string) {
   if (!res.ok) throw new Error('Usuario no encontrado')
   return res.json()
 }
+
+export async function likeEvento(eventId: string) {
+  const token = localStorage.getItem('access_token')
+  const userId = localStorage.getItem('user_id')
+  const res = await fetch(`${BASE_URL}/events/${eventId}/like`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
+    body: JSON.stringify({ user_id: userId })
+  })
+  if (!res.ok) throw new Error('Error al dar like al evento')
+  return res.json()
+}
+
+export async function unlikeEvento(eventId: string) {
+  const token = localStorage.getItem('access_token')
+  const userId = localStorage.getItem('user_id')
+  const res = await fetch(`${BASE_URL}/events/${eventId}/like`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
+    body: JSON.stringify({ user_id: userId })
+  })
+  if (!res.ok) throw new Error('Error al quitar like del evento')
+  return res.json()
+}
+
+export async function obtenerLikes(eventId: string) {
+  const res = await fetch(`${BASE_URL}/events/${eventId}/like`)
+  if (!res.ok) throw new Error('Error al obtener likes')
+  return res.json()
+}

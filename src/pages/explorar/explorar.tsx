@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { listarEventos, borrarEvento, unirseEvento, abandonarEvento, listarPersonas, buscarPersonas } from '../../services/eventos'
+import { listarEventos, borrarEvento, unirseEvento, abandonarEvento, listarPersonas, buscarPersonas, likeEvento, unlikeEvento, obtenerLikes } from '../../services/eventos'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import './explorar.css'
 
@@ -25,6 +25,8 @@ export default function Explorar() {
   const [buscandoPersonas, setBuscandoPersonas] = useState(false)
   const [busquedaRealizada, setBusquedaRealizada] = useState(false)
   const [amigosAgregados, setAmigosAgregados] = useState<string[]>([])
+  const [likesMap, setLikesMap] = useState<Record<string, number>>({})
+  const [likedEventos, setLikedEventos] = useState<string[]>([])
 
   const userId = localStorage.getItem('user_id')
 
@@ -50,6 +52,27 @@ export default function Explorar() {
           }
         }
         setEventosUnidos(unidos)
+
+        // Cargar likes de cada evento en paralelo
+        const likesResultados = await Promise.allSettled(
+          listaEventos.map((ev: any) => obtenerLikes(String(ev.id)))
+        )
+        const nuevoLikesMap: Record<string, number> = {}
+        const nuevosLikedEventos: string[] = []
+        likesResultados.forEach((res, i) => {
+          const evId = String(listaEventos[i].id)
+          if (res.status === 'fulfilled') {
+            const likes: any[] = Array.isArray(res.value) ? res.value : (res.value?.likes ?? [])
+            nuevoLikesMap[evId] = likes.length
+            if (userId && likes.some((l: any) => String(l.user_id ?? l.id) === userId)) {
+              nuevosLikedEventos.push(evId)
+            }
+          } else {
+            nuevoLikesMap[evId] = 0
+          }
+        })
+        setLikesMap(nuevoLikesMap)
+        setLikedEventos(nuevosLikedEventos)
       } catch (error) {
         console.error('Error al cargar datos:', error)
       } finally {
@@ -88,6 +111,26 @@ export default function Explorar() {
       ev.description?.toLowerCase().includes(busqueda.toLowerCase())
     return coincideTendencia && coincideBusqueda
   })
+
+  const handleLike = async (e: React.MouseEvent, evId: string) => {
+    e.stopPropagation()
+    if (!localStorage.getItem('access_token')) return
+
+    const yaLiked = likedEventos.includes(evId)
+    setLikedEventos(prev => yaLiked ? prev.filter(id => id !== evId) : [...prev, evId])
+    setLikesMap(prev => ({ ...prev, [evId]: Math.max(0, (prev[evId] ?? 0) + (yaLiked ? -1 : 1)) }))
+
+    try {
+      if (yaLiked) {
+        await unlikeEvento(evId)
+      } else {
+        await likeEvento(evId)
+      }
+    } catch {
+      setLikedEventos(prev => yaLiked ? [...prev, evId] : prev.filter(id => id !== evId))
+      setLikesMap(prev => ({ ...prev, [evId]: Math.max(0, (prev[evId] ?? 0) + (yaLiked ? 1 : -1)) }))
+    }
+  }
 
   const handleBorrar = async (id: string) => {
     if (!confirm('¿Seguro que querés borrar este evento?')) return
@@ -181,7 +224,7 @@ export default function Explorar() {
               <p className="exp-vacio">No se encontraron eventos.</p>
             ) : (
               eventosFiltrados.map(ev => {
-                const esMio = ev.created_by === userId || ev.user_id === userId || ev.creator_id === userId
+                const esMio = String(ev.creator_id ?? ev.created_by ?? ev.user_id ?? '') === String(userId ?? '')
                 const yaUnido = eventosUnidos.includes(ev.id)
                 const creatorNombre = ev.users?.full_name ?? ev.users?.username ?? ev.creator_name ?? ev.username ?? 'Usuario'
                 const iniciales = creatorNombre.slice(0, 2).toUpperCase()
@@ -214,6 +257,18 @@ export default function Explorar() {
                     </div>
 
                     <div className="exp-card-footer">
+                      <button
+                        className={`exp-btn-like${likedEventos.includes(String(ev.id)) ? ' exp-btn-liked' : ''}`}
+                        onClick={e => handleLike(e, String(ev.id))}
+                        aria-label="Me gusta"
+                      >
+                        <svg viewBox="0 0 24 24" fill={likedEventos.includes(String(ev.id)) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" width="16" height="16">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                        {(likesMap[String(ev.id)] ?? 0) > 0 && (
+                          <span>{likesMap[String(ev.id)]}</span>
+                        )}
+                      </button>
                       <button className="exp-btn-participantes" onClick={() => navigate(`/participantes/${ev.id}`)}>
                         👥 Ver participantes
                       </button>
