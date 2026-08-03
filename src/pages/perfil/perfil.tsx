@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header/Header'
 import Logro from '../../components/Logro/Logro'
 import { obtenerPerfil, actualizarPerfil } from '../../services/auth'
+import { obtenerEventosAsistidos } from '../../services/ratings'
+import { obtenerAmigos } from '../../services/friendships'
 import { useTheme } from '../../context/ThemeContext'
 import './perfil.css'
 
@@ -27,6 +29,14 @@ function Perfil() {
     intereses: [] as string[]
   })
 
+  // Gráfico de asistencia por mes
+  const [eventosPorMes, setEventosPorMes] = useState<{ mes: string; count: number }[]>([])
+
+  // Lista de amigos y modal
+  type Amigo = { id: string; full_name: string; username: string; avatar_url: string | null }
+  const [amigos, setAmigos] = useState<Amigo[]>([])
+  const [mostrarAmigos, setMostrarAmigos] = useState(false)
+
   useEffect(() => {
     const userId = localStorage.getItem('user_id')
     const usuarioGuardado = JSON.parse(localStorage.getItem('usuario') || '{}')
@@ -48,6 +58,40 @@ function Perfil() {
             avatarUrl: data.avatar_url || ''
           }))
           localStorage.setItem('usuario', JSON.stringify({ ...usuarioGuardado, ...data }))
+        })
+        .catch(() => {})
+
+      // Cargar eventos asistidos para el gráfico
+      obtenerEventosAsistidos(userId)
+        .then((eventos: any[]) => {
+          // Últimos 12 meses
+          const ahora = new Date()
+          const meses: { mes: string; count: number }[] = []
+
+          for (let i = 11; i >= 0; i--) {
+            const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1)
+            const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`
+            const label = fecha.toLocaleString('es-AR', { month: 'short' })
+            const count = eventos.filter((ev: any) => {
+              const evFecha = new Date(ev.event_date)
+              return (
+                evFecha.getFullYear() === fecha.getFullYear() &&
+                evFecha.getMonth() === fecha.getMonth()
+              )
+            }).length
+            meses.push({ mes: label, count })
+          }
+
+          setEventosPorMes(meses)
+          // Actualizar contador de asistidos
+          setUsuario(prev => ({ ...prev, asistidos: eventos.length }))
+        })
+        .catch(() => {})
+      // Cargar amigos
+      obtenerAmigos()
+        .then((lista: Amigo[]) => {
+          setAmigos(lista ?? [])
+          setUsuario(prev => ({ ...prev, amigos: (lista ?? []).length }))
         })
         .catch(() => {})
     }
@@ -163,7 +207,7 @@ function Perfil() {
           <strong>{usuario.creados}</strong>
           <p>Creados</p>
         </div>
-        <div className="card">
+        <div className="card" style={{ cursor: 'pointer' }} onClick={() => setMostrarAmigos(true)}>
           <strong>{usuario.amigos}</strong>
           <p>Conexiones</p>
         </div>
@@ -183,6 +227,32 @@ function Perfil() {
         </div>
         <small>{usuario.xpFaltante} XP para el siguiente nivel</small>
       </div>
+
+      {/* Estadísticas de asistencia */}
+      <section className="stat-grafico-section">
+        <h2>Eventos asistidos por mes</h2>
+        {eventosPorMes.every(m => m.count === 0) ? (
+          <p className="vacio">Todavía no asististe a ningún evento.</p>
+        ) : (
+          <div className="stat-grafico">
+            {(() => {
+              const max = Math.max(...eventosPorMes.map(m => m.count), 1)
+              return eventosPorMes.map((m, i) => (
+                <div key={i} className="stat-col">
+                  <span className="stat-count">{m.count > 0 ? m.count : ''}</span>
+                  <div className="stat-barra-bg">
+                    <div
+                      className="stat-barra-fill"
+                      style={{ height: `${(m.count / max) * 100}%` }}
+                    />
+                  </div>
+                  <span className="stat-mes">{m.mes}</span>
+                </div>
+              ))
+            })()}
+          </div>
+        )}
+      </section>
 
       {/* Intereses */}
       <section>
@@ -206,9 +276,34 @@ function Perfil() {
           <h2>Mis amigos</h2>
           <span className="amigos-badge">{usuario.amigos}</span>
         </div>
-        <div className="amigos-vacio">
-          Todavía no tenés amigos. Buscá personas en Explorar 👋
-        </div>
+        {amigos.length === 0 ? (
+          <div className="amigos-vacio">
+            Todavía no tenés amigos. Buscá personas en Explorar 👋
+          </div>
+        ) : (
+          <div className="amigos-lista">
+            {amigos.slice(0, 5).map(a => {
+              const iniciales = (a.full_name || a.username || '?').split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
+              return (
+                <div key={a.id} className="amigo-item">
+                  {a.avatar_url
+                    ? <img src={a.avatar_url} alt={a.full_name} className="amigo-avatar-img" />
+                    : <div className="amigo-avatar-ph">{iniciales}</div>
+                  }
+                  <div className="amigo-info">
+                    <span className="amigo-nombre">{a.full_name}</span>
+                    <span className="amigo-user">@{a.username}</span>
+                  </div>
+                </div>
+              )
+            })}
+            {amigos.length > 5 && (
+              <button className="amigos-ver-todos" onClick={() => setMostrarAmigos(true)}>
+                Ver todos ({amigos.length})
+              </button>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Logros */}
@@ -230,6 +325,39 @@ function Perfil() {
             desc="Conecta con 50 personas"
           />
         </section>
+
+      {/* Modal conexiones */}
+      {mostrarAmigos && (
+        <div className="modal-overlay" onClick={() => setMostrarAmigos(false)}>
+          <div className="modal modal-amigos" onClick={e => e.stopPropagation()}>
+            <div className="modal-amigos-header">
+              <p className="modal-titulo">Mis conexiones ({amigos.length})</p>
+              <button className="modal-amigos-close" onClick={() => setMostrarAmigos(false)}>✕</button>
+            </div>
+            {amigos.length === 0 ? (
+              <p className="modal-desc">Todavía no tenés conexiones.</p>
+            ) : (
+              <div className="amigos-lista amigos-lista-modal">
+                {amigos.map(a => {
+                  const iniciales = (a.full_name || a.username || '?').split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
+                  return (
+                    <div key={a.id} className="amigo-item">
+                      {a.avatar_url
+                        ? <img src={a.avatar_url} alt={a.full_name} className="amigo-avatar-img" />
+                        : <div className="amigo-avatar-ph">{iniciales}</div>
+                      }
+                      <div className="amigo-info">
+                        <span className="amigo-nombre">{a.full_name}</span>
+                        <span className="amigo-user">@{a.username}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Modal confirmación logout */}
       {mostrarConfirmLogout && (

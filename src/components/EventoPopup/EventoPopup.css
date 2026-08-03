@@ -625,3 +625,95 @@
   opacity: 0.55;
   cursor: default;
 }
+
+/* ── Sección calificación ── */
+.popup-rating-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border2);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: 4px;
+}
+
+.popup-rating-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.popup-rating-titulo {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.popup-rating-promedio {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.popup-rating-total {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.popup-rating-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Estrellas */
+.popup-estrellas {
+  display: flex;
+  gap: 4px;
+}
+
+.popup-estrella {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: var(--border2);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s, transform 0.1s;
+}
+
+.popup-estrella.activa {
+  color: #ffaa00;
+}
+
+.popup-estrella:hover:not(:disabled) {
+  transform: scale(1.15);
+}
+
+.popup-estrella:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Readonly (ya calificado) */
+.popup-estrellas-readonly .popup-estrella {
+  cursor: default;
+  font-size: 22px;
+}
+
+.popup-rating-hecho {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.popup-rating-error {
+  margin: 0;
+  font-size: 12px;
+  color: #ff5555;
+}

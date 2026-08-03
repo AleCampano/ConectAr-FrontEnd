@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { unirseEvento, abandonarEvento, listarPersonas } from '../../services/eventos'
+import { obtenerRating, obtenerMiRating, calificarEvento } from '../../services/ratings'
 import './EventoPopup.css'
 
 interface EventoPopupProps {
@@ -41,7 +42,18 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
   const [vistaParticipantes, setVistaParticipantes] = useState(false)
   const [busqueda, setBusqueda] = useState('')
 
+  // Calificación
+  const [ratingPromedio, setRatingPromedio] = useState<{ average: number | null; total: number }>({ average: null, total: 0 })
+  const [miRating, setMiRating] = useState<number | null>(null)
+  const [ratingHover, setRatingHover] = useState(0)
+  const [calificando, setCalificando] = useState(false)
+  const [ratingError, setRatingError] = useState('')
+  const [ratingExito, setRatingExito] = useState(false)
+
   const userId = localStorage.getItem('user_id')
+
+  // El evento ya pasó si su fecha es anterior a ahora
+  const eventoYaPaso = evento?.event_date ? new Date(evento.event_date) < new Date() : false
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -77,6 +89,18 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
       }
     }
     cargarParticipantes()
+
+    // Cargar rating del evento
+    obtenerRating(String(evento.id))
+      .then(r => setRatingPromedio(r))
+      .catch(() => {})
+
+    // Cargar mi rating si hay sesión
+    if (userId && localStorage.getItem('access_token')) {
+      obtenerMiRating(String(evento.id))
+        .then(r => setMiRating(r?.score ?? null))
+        .catch(() => {})
+    }
   }, [evento?.id, userId])
 
   async function handleUnirse() {
@@ -112,6 +136,27 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
       setError('No se pudo unir al evento. Intentá de nuevo.')
     } finally {
       setUniendose(false)
+    }
+  }
+
+  async function handleCalificar(score: number) {
+    if (!localStorage.getItem('access_token')) return
+    setCalificando(true)
+    setRatingError('')
+    try {
+      await calificarEvento(String(evento.id), score)
+      setMiRating(score)
+      setRatingExito(true)
+      // Actualizar promedio localmente
+      const nuevoTotal = ratingPromedio.total + (miRating ? 0 : 1)
+      const nuevoAvg = miRating
+        ? ((ratingPromedio.average ?? 0) * ratingPromedio.total - miRating + score) / ratingPromedio.total
+        : ((ratingPromedio.average ?? 0) * ratingPromedio.total + score) / nuevoTotal
+      setRatingPromedio({ average: Math.round(nuevoAvg * 10) / 10, total: nuevoTotal })
+    } catch (e: any) {
+      setRatingError(e?.message ?? 'No se pudo calificar')
+    } finally {
+      setCalificando(false)
     }
   }
 
@@ -305,6 +350,56 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
               >
                 {uniendose ? 'Uniéndose…' : '¡Unirme al evento!'}
               </button>
+            )}
+
+            {/* ── Calificación ── */}
+            {eventoYaPaso && (
+              <div className="popup-rating-section">
+                <div className="popup-rating-header">
+                  <span className="popup-rating-titulo">Calificación</span>
+                  {ratingPromedio.average !== null && (
+                    <span className="popup-rating-promedio">
+                      ⭐ {ratingPromedio.average.toFixed(1)}
+                      <span className="popup-rating-total"> ({ratingPromedio.total})</span>
+                    </span>
+                  )}
+                </div>
+
+                {unido && !ratingExito && miRating === null && (
+                  <>
+                    <p className="popup-rating-label">¿Cómo estuvo el evento?</p>
+                    <div className="popup-estrellas">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button
+                          key={star}
+                          className={`popup-estrella ${star <= (ratingHover || miRating || 0) ? 'activa' : ''}`}
+                          onMouseEnter={() => setRatingHover(star)}
+                          onMouseLeave={() => setRatingHover(0)}
+                          onClick={() => handleCalificar(star)}
+                          disabled={calificando}
+                          aria-label={`${star} estrella${star > 1 ? 's' : ''}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                    {ratingError && <p className="popup-rating-error">{ratingError}</p>}
+                  </>
+                )}
+
+                {(ratingExito || miRating !== null) && (
+                  <div className="popup-rating-hecho">
+                    <div className="popup-estrellas popup-estrellas-readonly">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <span key={star} className={`popup-estrella ${star <= (miRating ?? 0) ? 'activa' : ''}`}>★</span>
+                      ))}
+                    </div>
+                    <span className="popup-rating-label">
+                      {ratingExito ? '¡Gracias por tu calificación!' : 'Ya calificaste este evento'}
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
 
           </div>

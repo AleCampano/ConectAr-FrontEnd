@@ -7,6 +7,7 @@ import Perfil from './pages/perfil/perfil'
 import CrearEvento from './pages/crearEvento/crearEvento'
 import Explorar from './pages/explorar/explorar'
 import VerParticipantes from './pages/verParticipantes/verParticipantes'
+import Notificaciones from './pages/notificaciones/notificaciones'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/explorar" element={<Explorar />} />
           <Route path="/crear-evento" element={<CrearEvento />} />
           <Route path="/participantes/:id" element={<VerParticipantes />} />
+          <Route path="/notificaciones" element={<Notificaciones />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

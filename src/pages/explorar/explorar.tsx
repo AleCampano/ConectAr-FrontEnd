@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listarEventos, borrarEvento, unirseEvento, abandonarEvento, listarPersonas, buscarPersonas, likeEvento, unlikeEvento, obtenerLikes } from '../../services/eventos'
+import { enviarSolicitud } from '../../services/friendships'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import './explorar.css'
 
@@ -25,6 +26,7 @@ export default function Explorar() {
   const [buscandoPersonas, setBuscandoPersonas] = useState(false)
   const [busquedaRealizada, setBusquedaRealizada] = useState(false)
   const [amigosAgregados, setAmigosAgregados] = useState<string[]>([])
+  const [enviandoSolicitud, setEnviandoSolicitud] = useState<string[]>([])
   const [likesMap, setLikesMap] = useState<Record<string, number>>({})
   const [likedEventos, setLikedEventos] = useState<string[]>([])
 
@@ -129,6 +131,19 @@ export default function Explorar() {
     } catch {
       setLikedEventos(prev => yaLiked ? [...prev, evId] : prev.filter(id => id !== evId))
       setLikesMap(prev => ({ ...prev, [evId]: Math.max(0, (prev[evId] ?? 0) + (yaLiked ? 1 : -1)) }))
+    }
+  }
+
+  const handleAgregar = async (personaId: string) => {
+    if (amigosAgregados.includes(personaId)) return
+    setEnviandoSolicitud(prev => [...prev, personaId])
+    try {
+      await enviarSolicitud(personaId)
+      setAmigosAgregados(prev => [...prev, personaId])
+    } catch {
+      alert('No se pudo enviar la solicitud.')
+    } finally {
+      setEnviandoSolicitud(prev => prev.filter(id => id !== personaId))
     }
   }
 
@@ -311,11 +326,10 @@ export default function Explorar() {
                     </div>
                     <button
                       className={agregado ? 'exp-btn-agregado' : 'exp-btn-agregar'}
-                      onClick={() => setAmigosAgregados(prev =>
-                        prev.includes(persona.id) ? prev.filter(a => a !== persona.id) : [...prev, persona.id]
-                      )}
+                      disabled={enviandoSolicitud.includes(persona.id) || agregado}
+                      onClick={() => handleAgregar(persona.id)}
                     >
-                      {agregado ? '✅ Agregado' : '+ Agregar'}
+                      {enviandoSolicitud.includes(persona.id) ? '...' : agregado ? '✅ Solicitud enviada' : '+ Agregar'}
                     </button>
                   </div>
                 )

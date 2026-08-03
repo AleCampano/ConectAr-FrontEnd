@@ -397,3 +397,171 @@ section h2 {
   background: var(--accent);
   color: #000;
 }
+
+/* ── Gráfico de asistencia ── */
+.stat-grafico-section h2 {
+  margin-bottom: 16px;
+}
+
+.stat-grafico {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 120px;
+  padding-bottom: 24px; /* espacio para las etiquetas de mes */
+  position: relative;
+}
+
+.stat-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  position: relative;
+  gap: 4px;
+}
+
+.stat-count {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  min-height: 14px;
+  line-height: 14px;
+}
+
+.stat-barra-bg {
+  flex: 1;
+  width: 100%;
+  background: var(--bg-input);
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border: 1px solid var(--border2);
+}
+
+.stat-barra-fill {
+  width: 100%;
+  background: var(--accent);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  min-height: 2px;
+}
+
+.stat-mes {
+  position: absolute;
+  bottom: -18px;
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* ── Lista de amigos ── */
+.amigos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.amigo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.amigo-avatar-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  flex-shrink: 0;
+}
+
+.amigo-avatar-ph {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg-input);
+  border: 2px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.amigo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.amigo-nombre {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.amigo-user {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.amigos-ver-todos {
+  background: none;
+  border: 1.5px solid var(--border2);
+  color: var(--accent);
+  border-radius: 99px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: border-color 0.2s;
+}
+
+.amigos-ver-todos:hover {
+  border-color: var(--accent);
+}
+
+/* ── Modal amigos ── */
+.modal-amigos {
+  max-height: 70svh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.modal-amigos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-amigos-header .modal-titulo {
+  margin: 0;
+}
+
+.modal-amigos-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.amigos-lista-modal {
+  overflow-y: auto;
+  padding: 12px 20px 20px;
+  flex: 1;
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listarEventos, likeEvento, unlikeEvento, obtenerLikes } from '../../services/eventos'
+import { obtenerSolicitudes } from '../../services/friendships'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import EventoPopup from '../../components/EventoPopup/EventoPopup'
 import Logo from '../../assets/Logo.png'
@@ -22,6 +23,7 @@ export default function Home() {
   const [eventoSeleccionado, setEventoSeleccionado] = useState<any | null>(null)
   const [likesMap, setLikesMap] = useState<Record<string, number>>({})
   const [likedEventos, setLikedEventos] = useState<string[]>([])
+  const [solicitudesPendientes, setSolicitudesPendientes] = useState(0)
 
   const userId = localStorage.getItem('user_id')
 
@@ -59,6 +61,13 @@ export default function Home() {
       }
     }
     cargarEventos()
+
+    // Badge de solicitudes pendientes
+    if (localStorage.getItem('access_token')) {
+      obtenerSolicitudes()
+        .then(sols => setSolicitudesPendientes(Array.isArray(sols) ? sols.length : 0))
+        .catch(() => {})
+    }
   }, [userId])
 
   async function handleLike(e: React.MouseEvent, evId: string) {
@@ -102,18 +111,17 @@ export default function Home() {
         <img src={Logo} alt="ConectAr" className="topbar-logo" />
 
           <button
-            className="topbar-icon-btn"
+            className="topbar-icon-btn topbar-bell"
             aria-label="Notificaciones"
-            onClick={() => {
-              if ('Notification' in window) {
-                Notification.requestPermission()
-              }
-            }}
+            onClick={() => navigate('/notificaciones')}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
+            {solicitudesPendientes > 0 && (
+              <span className="topbar-bell-badge">{solicitudesPendientes}</span>
+            )}
           </button>
       </header>
 
