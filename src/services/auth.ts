@@ -8,7 +8,8 @@ export async function registrarse(datos: any) {
       username: datos.usuario,
       email: datos.correo,
       password: datos.contrasena,
-      full_name: datos.nombreCompleto
+      full_name: datos.nombreCompleto,
+      birth_date: datos.fechaNacimiento  // formato YYYY-MM-DD
     })
   })
   if (!res.ok) throw new Error('Error al registrarse')

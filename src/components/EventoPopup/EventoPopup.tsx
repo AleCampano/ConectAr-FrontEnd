@@ -48,7 +48,8 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
   const [ratingHover, setRatingHover] = useState(0)
   const [calificando, setCalificando] = useState(false)
   const [ratingError, setRatingError] = useState('')
-  const [ratingExito, setRatingExito] = useState(false)
+  const [ratingMensaje, setRatingMensaje] = useState('')
+  const [editandoRating, setEditandoRating] = useState(false)
 
   const userId = localStorage.getItem('user_id')
 
@@ -141,18 +142,34 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
 
   async function handleCalificar(score: number) {
     if (!localStorage.getItem('access_token')) return
+    // No hacer nada si el usuario ya tiene ese score y no está en modo edición
+    if (miRating === score && !editandoRating) return
+
+    const esActualizacion = miRating !== null
     setCalificando(true)
     setRatingError('')
+    setRatingMensaje('')
     try {
-      await calificarEvento(String(evento.id), score)
+      await calificarEvento(String(evento.id), score, esActualizacion)
+      const ratingAnterior = miRating
       setMiRating(score)
-      setRatingExito(true)
+      setEditandoRating(false)
+      setRatingMensaje(esActualizacion ? '¡Calificación actualizada!' : '¡Gracias por tu calificación!')
+
       // Actualizar promedio localmente
-      const nuevoTotal = ratingPromedio.total + (miRating ? 0 : 1)
-      const nuevoAvg = miRating
-        ? ((ratingPromedio.average ?? 0) * ratingPromedio.total - miRating + score) / ratingPromedio.total
-        : ((ratingPromedio.average ?? 0) * ratingPromedio.total + score) / nuevoTotal
-      setRatingPromedio({ average: Math.round(nuevoAvg * 10) / 10, total: nuevoTotal })
+      if (esActualizacion && ratingAnterior !== null) {
+        // Actualización: reemplaza el score anterior
+        const nuevoAvg = ((ratingPromedio.average ?? 0) * ratingPromedio.total - ratingAnterior + score) / ratingPromedio.total
+        setRatingPromedio(prev => ({ ...prev, average: Math.round(nuevoAvg * 10) / 10 }))
+      } else {
+        // Primera vez: suma al total
+        const nuevoTotal = ratingPromedio.total + 1
+        const nuevoAvg = ((ratingPromedio.average ?? 0) * ratingPromedio.total + score) / nuevoTotal
+        setRatingPromedio({ average: Math.round(nuevoAvg * 10) / 10, total: nuevoTotal })
+      }
+
+      // Limpiar mensaje luego de 3 segundos
+      setTimeout(() => setRatingMensaje(''), 3000)
     } catch (e: any) {
       setRatingError(e?.message ?? 'No se pudo calificar')
     } finally {
@@ -365,39 +382,69 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
                   )}
                 </div>
 
-                {unido && !ratingExito && miRating === null && (
+                {unido && (
                   <>
-                    <p className="popup-rating-label">¿Cómo estuvo el evento?</p>
-                    <div className="popup-estrellas">
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <button
-                          key={star}
-                          className={`popup-estrella ${star <= (ratingHover || miRating || 0) ? 'activa' : ''}`}
-                          onMouseEnter={() => setRatingHover(star)}
-                          onMouseLeave={() => setRatingHover(0)}
-                          onClick={() => handleCalificar(star)}
-                          disabled={calificando}
-                          aria-label={`${star} estrella${star > 1 ? 's' : ''}`}
-                        >
-                          ★
-                        </button>
-                      ))}
-                    </div>
-                    {ratingError && <p className="popup-rating-error">{ratingError}</p>}
+                    {/* Estado: sin calificar o editando */}
+                    {(miRating === null || editandoRating) && (
+                      <>
+                        <p className="popup-rating-label">
+                          {editandoRating ? 'Cambiá tu calificación:' : '¿Cómo estuvo el evento?'}
+                        </p>
+                        <div className="popup-estrellas">
+                          {[1, 2, 3, 4, 5].map(star => (
+                            <button
+                              key={star}
+                              className={`popup-estrella ${star <= (ratingHover || (editandoRating ? miRating : 0) || 0) ? 'activa' : ''}`}
+                              onMouseEnter={() => setRatingHover(star)}
+                              onMouseLeave={() => setRatingHover(0)}
+                              onClick={() => handleCalificar(star)}
+                              disabled={calificando}
+                              aria-label={`${star} estrella${star > 1 ? 's' : ''}`}
+                            >
+                              ★
+                            </button>
+                          ))}
+                          {calificando && <span className="popup-rating-guardando">Guardando…</span>}
+                        </div>
+                        {editandoRating && (
+                          <button
+                            className="popup-rating-cancelar"
+                            onClick={() => { setEditandoRating(false); setRatingHover(0); setRatingError('') }}
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                        {ratingError && <p className="popup-rating-error">{ratingError}</p>}
+                      </>
+                    )}
+
+                    {/* Estado: ya calificado (no editando) */}
+                    {miRating !== null && !editandoRating && (
+                      <div className="popup-rating-hecho">
+                        <div className="popup-estrellas popup-estrellas-readonly">
+                          {[1, 2, 3, 4, 5].map(star => (
+                            <span key={star} className={`popup-estrella ${star <= miRating ? 'activa' : ''}`}>★</span>
+                          ))}
+                        </div>
+                        <div className="popup-rating-hecho-info">
+                          <span className="popup-rating-label">
+                            {ratingMensaje || 'Tu calificación'}
+                          </span>
+                          <button
+                            className="popup-rating-editar"
+                            onClick={() => { setEditandoRating(true); setRatingMensaje(''); setRatingError('') }}
+                          >
+                            Cambiar
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
 
-                {(ratingExito || miRating !== null) && (
-                  <div className="popup-rating-hecho">
-                    <div className="popup-estrellas popup-estrellas-readonly">
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <span key={star} className={`popup-estrella ${star <= (miRating ?? 0) ? 'activa' : ''}`}>★</span>
-                      ))}
-                    </div>
-                    <span className="popup-rating-label">
-                      {ratingExito ? '¡Gracias por tu calificación!' : 'Ya calificaste este evento'}
-                    </span>
-                  </div>
+                {/* Usuario no unido: solo muestra promedio si lo hay */}
+                {!unido && ratingPromedio.average === null && (
+                  <p className="popup-rating-label">Todavía sin calificaciones.</p>
                 )}
               </div>
             )}

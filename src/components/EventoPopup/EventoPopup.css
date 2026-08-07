@@ -712,6 +712,64 @@
   gap: 10px;
 }
 
+/* Info row next to readonly stars: label + Cambiar button */
+.popup-rating-hecho-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* "Cambiar" link-style button */
+.popup-rating-editar {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+  transition: opacity 0.15s;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.popup-rating-editar:hover {
+  opacity: 0.75;
+}
+
+/* "Cancelar" when in edit mode */
+.popup-rating-cancelar {
+  align-self: flex-start;
+  background: none;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.popup-rating-cancelar:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+/* "Guardando…" inline text next to stars */
+.popup-rating-guardando {
+  font-size: 12px;
+  color: var(--text-dim);
+  align-self: center;
+  animation: pulse-text 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-text {
+  from { opacity: 0.5; }
+  to   { opacity: 1; }
+}
+
 .popup-rating-error {
   margin: 0;
   font-size: 12px;

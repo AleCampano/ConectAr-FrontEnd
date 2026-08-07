@@ -5,6 +5,7 @@ import Logro from '../../components/Logro/Logro'
 import { obtenerPerfil, actualizarPerfil } from '../../services/auth'
 import { obtenerEventosAsistidos, calificarEvento, obtenerMiRating } from '../../services/ratings'
 import { obtenerAmigos } from '../../services/friendships'
+import { listarMisEventos, obtenerParticipantesConEdad } from '../../services/eventos'
 import { useTheme } from '../../context/ThemeContext'
 import './perfil.css'
 
@@ -42,6 +43,15 @@ function Perfil() {
   type Amigo = { id: string; full_name: string; username: string; avatar_url: string | null }
   const [amigos, setAmigos] = useState<Amigo[]>([])
   const [mostrarAmigos, setMostrarAmigos] = useState(false)
+
+  // Estadísticas de eventos creados
+  type MiEvento = { id: string; title: string; event_date: string; event_type: string }
+  type ParticipanteEdad = { user_id: string; full_name: string; edad: number | null }
+  const [misEventos, setMisEventos] = useState<MiEvento[]>([])
+  const [eventoStatsAbierto, setEventoStatsAbierto] = useState<string | null>(null)
+  const [statsExpandida, setStatsExpandida] = useState(false)
+  const [edadesMap, setEdadesMap] = useState<Record<string, ParticipanteEdad[]>>({})
+  const [cargandoEdades, setCargandoEdades] = useState<string | null>(null)
 
   useEffect(() => {
     const userId = localStorage.getItem('user_id')
@@ -112,6 +122,11 @@ function Perfil() {
           setUsuario(prev => ({ ...prev, amigos: (lista ?? []).length }))
         })
         .catch(() => {})
+
+      // Cargar mis eventos creados
+      listarMisEventos()
+        .then(evs => setMisEventos(evs))
+        .catch(() => {})
     }
   }, [])
 
@@ -180,6 +195,41 @@ function Perfil() {
     localStorage.removeItem('access_token')
     localStorage.removeItem('usuario')
     navigate('/login')
+  }
+
+  async function handleVerEstadisticas(eventId: string) {
+    // Si ya está abierto, lo cerramos
+    if (eventoStatsAbierto === eventId) {
+      setEventoStatsAbierto(null)
+      return
+    }
+    setEventoStatsAbierto(eventId)
+    // Si ya tenemos los datos, no volvemos a pedir
+    if (edadesMap[eventId]) return
+    setCargandoEdades(eventId)
+    try {
+      const participantes = await obtenerParticipantesConEdad(eventId)
+      setEdadesMap(prev => ({ ...prev, [eventId]: participantes }))
+    } catch {
+      setEdadesMap(prev => ({ ...prev, [eventId]: [] }))
+    } finally {
+      setCargandoEdades(null)
+    }
+  }
+
+  // Agrupa edades en rangos para el gráfico de barras
+  function agruparEdades(participantes: ParticipanteEdad[]) {
+    const rangos = [
+      { label: '18-24', min: 18, max: 24 },
+      { label: '25-30', min: 25, max: 30 },
+      { label: '31-40', min: 31, max: 40 },
+      { label: '41-50', min: 41, max: 50 },
+      { label: '51+',   min: 51, max: 999 },
+    ]
+    return rangos.map(r => ({
+      label: r.label,
+      count: participantes.filter(p => p.edad !== null && p.edad >= r.min && p.edad <= r.max).length,
+    }))
   }
 
   const inicialAvatar = usuario.nombre
@@ -371,6 +421,97 @@ function Perfil() {
           usuario.intereses.map(interes => (
             <span key={interes}>{interes}</span>
           ))
+        )}
+      </section>
+
+      {/* ── Estadísticas de mis eventos ── */}
+      <section className="evstats-section">
+        <button
+          className="evstats-header"
+          onClick={() => setStatsExpandida(prev => !prev)}
+          aria-expanded={statsExpandida}
+        >
+          <span className="evstats-titulo">📊 Estadísticas de mis eventos</span>
+          <svg
+            className={`evstats-chevron ${statsExpandida ? 'abierto' : ''}`}
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="16" height="16"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+
+        {statsExpandida && (
+          <div className="evstats-body">
+            {misEventos.length === 0 ? (
+              <p className="vacio">Todavía no creaste ningún evento.</p>
+            ) : (
+              misEventos.map(ev => {
+                const abierto = eventoStatsAbierto === ev.id
+                const cargando = cargandoEdades === ev.id
+                const participantes = edadesMap[ev.id] ?? []
+                const grupos = agruparEdades(participantes)
+                const maxCount = Math.max(...grupos.map(g => g.count), 1)
+                const sinDatos = participantes.length > 0 && participantes.every(p => p.edad === null)
+                const fecha = new Date(ev.event_date).toLocaleDateString('es-AR', {
+                  day: '2-digit', month: 'short', year: 'numeric'
+                })
+
+                return (
+                  <div key={ev.id} className="evstats-item">
+                    <button
+                      className={`evstats-evento-row ${abierto ? 'abierto' : ''}`}
+                      onClick={() => handleVerEstadisticas(ev.id)}
+                    >
+                      <div className="evstats-evento-info">
+                        <p className="evstats-evento-titulo">{ev.title}</p>
+                        <p className="evstats-evento-meta">
+                          {fecha}{ev.event_type ? ` · #${ev.event_type}` : ''}
+                        </p>
+                      </div>
+                      <svg
+                        className={`evstats-chevron ${abierto ? 'abierto' : ''}`}
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="14" height="14"
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+
+                    {abierto && (
+                      <div className="evstats-detalle">
+                        {cargando ? (
+                          <p className="evstats-cargando">Cargando datos…</p>
+                        ) : participantes.length === 0 ? (
+                          <p className="vacio">Sin participantes todavía.</p>
+                        ) : sinDatos ? (
+                          <p className="vacio">Los participantes aún no tienen edad registrada.</p>
+                        ) : (
+                          <>
+                            <p className="evstats-subtitulo">
+                              Distribución de edades · {participantes.filter(p => p.edad !== null).length} con datos
+                            </p>
+                            <div className="evstats-grafico">
+                              {grupos.map(g => (
+                                <div key={g.label} className="evstats-col">
+                                  <span className="evstats-count">{g.count > 0 ? g.count : ''}</span>
+                                  <div className="evstats-barra-bg">
+                                    <div
+                                      className="evstats-barra-fill"
+                                      style={{ height: `${(g.count / maxCount) * 100}%` }}
+                                    />
+                                  </div>
+                                  <span className="evstats-label">{g.label}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            )}
+          </div>
         )}
       </section>
 

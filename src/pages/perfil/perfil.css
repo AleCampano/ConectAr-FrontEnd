@@ -647,3 +647,177 @@ section h2 {
   flex-shrink: 0;
   font-weight: 600;
 }
+
+/* ── Estadísticas de mis eventos ── */
+.evstats-section {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Fila header colapsable de la sección */
+.evstats-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  padding: 14px;
+  cursor: pointer;
+  color: var(--text);
+  gap: 8px;
+}
+
+.evstats-titulo {
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.evstats-chevron {
+  stroke: var(--text-dim);
+  flex-shrink: 0;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.evstats-chevron.abierto {
+  transform: rotate(180deg);
+}
+
+/* Cuerpo expandido */
+.evstats-body {
+  padding: 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: evstats-in 0.2s ease;
+}
+
+@keyframes evstats-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Cada fila de evento */
+.evstats-item {
+  background: var(--bg-card2);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border2);
+}
+
+.evstats-evento-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  padding: 12px 14px;
+  cursor: pointer;
+  gap: 8px;
+  transition: background 0.15s;
+}
+
+.evstats-evento-row:hover,
+.evstats-evento-row.abierto {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.evstats-evento-info {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.evstats-evento-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.evstats-evento-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+/* Detalle con el gráfico */
+.evstats-detalle {
+  padding: 4px 14px 14px;
+  border-top: 1px solid var(--border);
+  animation: evstats-in 0.18s ease;
+}
+
+.evstats-cargando {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin: 8px 0 0;
+  animation: pulse-text 1s ease-in-out infinite alternate;
+}
+
+.evstats-subtitulo {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 10px 0 12px;
+  font-weight: 500;
+}
+
+/* Gráfico de barras de edades */
+.evstats-grafico {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 100px;
+  padding-bottom: 22px;
+  position: relative;
+}
+
+.evstats-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  position: relative;
+  gap: 3px;
+}
+
+.evstats-count {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  min-height: 13px;
+  line-height: 13px;
+}
+
+.evstats-barra-bg {
+  flex: 1;
+  width: 100%;
+  background: var(--bg-input);
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border: 1px solid var(--border2);
+}
+
+.evstats-barra-fill {
+  width: 100%;
+  background: var(--accent);
+  border-radius: 4px 4px 0 0;
+  min-height: 3px;
+  transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.evstats-label {
+  position: absolute;
+  bottom: -18px;
+  font-size: 9px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
