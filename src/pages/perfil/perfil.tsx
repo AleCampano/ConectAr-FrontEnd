@@ -122,28 +122,57 @@ function Perfil() {
     const userId = localStorage.getItem('user_id')
     if (!userId) return
 
-    // Convertir a base64 para previsualizar de inmediato
-    const reader = new FileReader()
-    reader.onload = async (ev) => {
-      const base64 = ev.target?.result as string
-      // Mostrar preview instantáneo
+    setSubiendoFoto(true)
+
+    try {
+      // Redimensionar y comprimir a máximo 400x400 y calidad 0.7
+      const base64 = await comprimirImagen(archivo, 400, 0.7)
+
+      // Preview instantáneo
       setUsuario(prev => ({ ...prev, avatarUrl: base64 }))
 
-      setSubiendoFoto(true)
-      try {
-        const data = await actualizarPerfil(userId, { avatar_url: base64 })
-        const avatarFinal = data.avatar_url || base64
-        setUsuario(prev => ({ ...prev, avatarUrl: avatarFinal }))
-        const usuarioGuardado = JSON.parse(localStorage.getItem('usuario') || '{}')
-        localStorage.setItem('usuario', JSON.stringify({ ...usuarioGuardado, avatar_url: avatarFinal }))
-      } catch {
-        alert('No se pudo guardar la foto. Intentá de nuevo.')
-        setUsuario(prev => ({ ...prev, avatarUrl: '' }))
-      } finally {
-        setSubiendoFoto(false)
-      }
+      const data = await actualizarPerfil(userId, { avatar_url: base64 })
+      const avatarFinal = data.avatar_url || base64
+      setUsuario(prev => ({ ...prev, avatarUrl: avatarFinal }))
+      const usuarioGuardado = JSON.parse(localStorage.getItem('usuario') || '{}')
+      localStorage.setItem('usuario', JSON.stringify({ ...usuarioGuardado, avatar_url: avatarFinal }))
+    } catch {
+      alert('No se pudo guardar la foto. Intentá de nuevo.')
+      setUsuario(prev => ({ ...prev, avatarUrl: '' }))
+    } finally {
+      setSubiendoFoto(false)
     }
-    reader.readAsDataURL(archivo)
+  }
+
+  function comprimirImagen(archivo: File, maxSize: number, calidad: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (ev) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let { width, height } = img
+
+          // Escalar manteniendo proporción
+          if (width > height) {
+            if (width > maxSize) { height = Math.round(height * maxSize / width); width = maxSize }
+          } else {
+            if (height > maxSize) { width = Math.round(width * maxSize / height); height = maxSize }
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          if (!ctx) { reject(new Error('Canvas no disponible')); return }
+          ctx.drawImage(img, 0, 0, width, height)
+          resolve(canvas.toDataURL('image/jpeg', calidad))
+        }
+        img.onerror = reject
+        img.src = ev.target?.result as string
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(archivo)
+    })
   }
 
   function cerrarSesion() {
@@ -163,8 +192,9 @@ function Perfil() {
     try {
       await calificarEvento(eventId, score, yaCalificado)
       setRatingsMap(prev => ({ ...prev, [eventId]: score }))
-    } catch {
-      alert('No se pudo enviar la calificación.')
+    } catch (e: any) {
+      console.error('[Rating] Error al calificar:', e?.message, '| yaCalificado:', yaCalificado, '| eventId:', eventId, '| score:', score)
+      alert(`Error al calificar: ${e?.message ?? 'desconocido'}`)
     } finally {
       setEnviandoRating(null)
     }
