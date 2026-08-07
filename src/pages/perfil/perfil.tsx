@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header/Header'
 import Logro from '../../components/Logro/Logro'
 import { obtenerPerfil, actualizarPerfil } from '../../services/auth'
-import { obtenerEventosAsistidos } from '../../services/ratings'
+import { obtenerEventosAsistidos, calificarEvento, obtenerMiRating } from '../../services/ratings'
 import { obtenerAmigos } from '../../services/friendships'
 import { useTheme } from '../../context/ThemeContext'
 import './perfil.css'
@@ -31,6 +31,12 @@ function Perfil() {
 
   // Gráfico de asistencia por mes
   const [eventosPorMes, setEventosPorMes] = useState<{ mes: string; count: number }[]>([])
+
+  // Eventos asistidos con rating
+  type EventoAsistido = { id: string; title: string; event_date: string; event_type: string }
+  const [eventosAsistidos, setEventosAsistidos] = useState<EventoAsistido[]>([])
+  const [ratingsMap, setRatingsMap] = useState<Record<string, number | null>>({})
+  const [enviandoRating, setEnviandoRating] = useState<string | null>(null)
 
   // Lista de amigos y modal
   type Amigo = { id: string; full_name: string; username: string; avatar_url: string | null }
@@ -63,7 +69,7 @@ function Perfil() {
 
       // Cargar eventos asistidos para el gráfico
       obtenerEventosAsistidos(userId)
-        .then((eventos: any[]) => {
+        .then(async (eventos: any[]) => {
           // Últimos 12 meses
           const ahora = new Date()
           const meses: { mes: string; count: number }[] = []
@@ -85,6 +91,18 @@ function Perfil() {
           setEventosPorMes(meses)
           // Actualizar contador de asistidos
           setUsuario(prev => ({ ...prev, asistidos: eventos.length }))
+          setEventosAsistidos(eventos)
+
+          // Cargar mi rating previo para cada evento en paralelo
+          const resultados = await Promise.allSettled(
+            eventos.map((ev: any) => obtenerMiRating(String(ev.id)))
+          )
+          const nuevoRatingsMap: Record<string, number | null> = {}
+          resultados.forEach((res, i) => {
+            const evId = String(eventos[i].id)
+            nuevoRatingsMap[evId] = res.status === 'fulfilled' ? (res.value?.score ?? null) : null
+          })
+          setRatingsMap(nuevoRatingsMap)
         })
         .catch(() => {})
       // Cargar amigos
@@ -138,6 +156,19 @@ function Perfil() {
   const inicialAvatar = usuario.nombre
     ? usuario.nombre.charAt(0).toLowerCase()
     : '?'
+
+  async function handleCalificar(eventId: string, score: number) {
+    setEnviandoRating(eventId)
+    const yaCalificado = ratingsMap[eventId] !== null && ratingsMap[eventId] !== undefined
+    try {
+      await calificarEvento(eventId, score, yaCalificado)
+      setRatingsMap(prev => ({ ...prev, [eventId]: score }))
+    } catch {
+      alert('No se pudo enviar la calificación.')
+    } finally {
+      setEnviandoRating(null)
+    }
+  }
 
   return (
     <div className="pagina">
@@ -250,6 +281,50 @@ function Perfil() {
                 </div>
               ))
             })()}
+          </div>
+        )}
+      </section>
+
+      {/* Eventos asistidos con puntuación */}
+      <section>
+        <h2>Eventos a los que asististe</h2>
+        {eventosAsistidos.length === 0 ? (
+          <p className="vacio">Todavía no asististe a ningún evento.</p>
+        ) : (
+          <div className="asistidos-lista">
+            {eventosAsistidos.map(ev => {
+              const yaTermino = new Date(ev.event_date) < new Date()
+              const miRating = ratingsMap[String(ev.id)] ?? null
+              const cargando = enviandoRating === String(ev.id)
+              const fecha = new Date(ev.event_date).toLocaleDateString('es-AR', {
+                day: '2-digit', month: 'short', year: 'numeric'
+              })
+              return (
+                <div key={ev.id} className="asistido-item">
+                  <div className="asistido-info">
+                    <p className="asistido-titulo">{ev.title}</p>
+                    <p className="asistido-fecha">{fecha}{ev.event_type ? ` · #${ev.event_type}` : ''}</p>
+                  </div>
+                  {yaTermino ? (
+                    <div className={`asistido-estrellas${cargando ? ' cargando' : ''}`}>
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button
+                          key={star}
+                          className={`estrella${miRating !== null && star <= miRating ? ' activa' : ''}`}
+                          onClick={() => !cargando && handleCalificar(String(ev.id), star)}
+                          aria-label={`Puntuar con ${star} estrella${star > 1 ? 's' : ''}`}
+                          disabled={cargando}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="asistido-pendiente">Próximo</span>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
       </section>

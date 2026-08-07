@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { listarEventos, borrarEvento, unirseEvento, abandonarEvento, listarPersonas, buscarPersonas, likeEvento, unlikeEvento, obtenerLikes } from '../../services/eventos'
 import { enviarSolicitud } from '../../services/friendships'
 import BottomNav from '../../components/BottomNav/BottomNav'
+import ChatEvento from '../chatEvento/chatEvento'
 import './explorar.css'
 
 const TENDENCIAS = [
@@ -29,6 +30,9 @@ export default function Explorar() {
   const [enviandoSolicitud, setEnviandoSolicitud] = useState<string[]>([])
   const [likesMap, setLikesMap] = useState<Record<string, number>>({})
   const [likedEventos, setLikedEventos] = useState<string[]>([])
+  const [chatEventoId, setChatEventoId] = useState<string | null>(null)
+  const [chatTitulo, setChatTitulo] = useState<string>('')
+  const [advertenciaChat, setAdvertenciaChat] = useState(false)
 
   const userId = localStorage.getItem('user_id')
 
@@ -287,6 +291,17 @@ export default function Explorar() {
                       <button className="exp-btn-participantes" onClick={() => navigate(`/participantes/${ev.id}`)}>
                         👥 Ver participantes
                       </button>
+                      <button className="exp-btn-participantes" onClick={() => {
+                        if (!esMio && !eventosUnidos.includes(String(ev.id))) {
+                          setAdvertenciaChat(true)
+                          setTimeout(() => setAdvertenciaChat(false), 3000)
+                          return
+                        }
+                        setChatEventoId(String(ev.id))
+                        setChatTitulo(ev.title ?? 'Chat')
+                      }}>
+                        💬 Chat
+                      </button>
                       {!esMio && (
                         <button
                           className={yaUnido ? 'exp-btn-unido' : 'exp-btn-unirse'}
@@ -341,6 +356,21 @@ export default function Explorar() {
       </div>
 
       <BottomNav />
+
+      {/* Toast: no unido al evento */}
+      {advertenciaChat && (
+        <div className="exp-toast-advertencia">
+          🔒 Tenés que unirte al evento para acceder al chat
+        </div>
+      )}
+
+      {chatEventoId && (
+        <ChatEvento
+          eventId={chatEventoId}
+          tituloEvento={chatTitulo}
+          onCerrar={() => setChatEventoId(null)}
+        />
+      )}
     </div>
   )
 }

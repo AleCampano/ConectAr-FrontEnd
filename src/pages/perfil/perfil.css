@@ -565,3 +565,85 @@ section h2 {
   padding: 12px 20px 20px;
   flex: 1;
 }
+
+/* ── Eventos asistidos ── */
+.asistidos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.asistido-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg-card2);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.asistido-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.asistido-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.asistido-fecha {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.asistido-estrellas {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.asistido-estrellas.cargando {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.estrella {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: var(--border2);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s, transform 0.1s;
+}
+
+.estrella:hover,
+.estrella:focus-visible {
+  color: #f5a623;
+  transform: scale(1.2);
+  outline: none;
+}
+
+.estrella.activa {
+  color: #f5a623;
+}
+
+.asistido-pendiente {
+  font-size: 11px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 99px;
+  padding: 3px 10px;
+  flex-shrink: 0;
+  font-weight: 600;
+}

@@ -466,3 +466,32 @@
 .sk-titulo  { height: 16px; width: 55%; }
 .sk-linea   { height: 12px; width: 100%; }
 .sk-corta   { width: 70%; }
+
+/* ── Toast advertencia chat ── */
+.exp-toast-advertencia {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  border: 1px solid #f5a623;
+  color: #f5a623;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 99px;
+  white-space: nowrap;
+  z-index: 300;
+  animation: toast-in 0.2s ease, toast-out 0.3s ease 2.7s forwards;
+  pointer-events: none;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}

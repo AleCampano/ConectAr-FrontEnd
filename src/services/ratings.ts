@@ -1,9 +1,10 @@
 import { BASE_URL } from '../config/api'
 
-export async function calificarEvento(eventId: string, score: number) {
+export async function calificarEvento(eventId: string, score: number, yaCalificado = false) {
   const token = localStorage.getItem('access_token')
+  const method = yaCalificado ? 'PUT' : 'POST'
   const res = await fetch(`${BASE_URL}/events/${eventId}/rating`, {
-    method: 'POST',
+    method,
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {})
