@@ -28,7 +28,6 @@ export async function obtenerSolicitudes() {
   return res.json()
 }
 
-// :id = id de la fila en friendships (viene del GET /requests)
 export async function aceptarSolicitud(id: string) {
   const token = localStorage.getItem('access_token')
   const res = await fetch(`${BASE_URL}/friendships/accept/${id}`, {
@@ -39,7 +38,6 @@ export async function aceptarSolicitud(id: string) {
   return res.json()
 }
 
-// :id = id de la fila en friendships (viene del GET /requests)
 export async function rechazarSolicitud(id: string) {
   const token = localStorage.getItem('access_token')
   const res = await fetch(`${BASE_URL}/friendships/reject/${id}`, {
@@ -50,7 +48,6 @@ export async function rechazarSolicitud(id: string) {
   return res.json()
 }
 
-// POST /friendships/request — body: { receiver_id }
 export async function enviarSolicitud(receiverId: string) {
   const token = localStorage.getItem('access_token')
   const res = await fetch(`${BASE_URL}/friendships/request`, {
@@ -81,5 +78,4 @@ export async function obtenerAmigos() {
   })
   if (!res.ok) throw new Error('Error al obtener amigos')
   return res.json()
-  // → [{ id, full_name, username, avatar_url, bio, xp, level }]
 }

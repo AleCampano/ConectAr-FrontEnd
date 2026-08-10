@@ -1,11 +1,5 @@
 import { BASE_URL } from '../config/api'
 
-/**
- * Crea (POST) o actualiza (PUT) la calificación del usuario autenticado para un evento.
- * @param eventId  ID del evento
- * @param score    Entero del 1 al 5
- * @param yaCalificado  true → usa PUT (actualizar); false → usa POST (crear)
- */
 export async function calificarEvento(eventId: string, score: number, yaCalificado = false) {
   const token = localStorage.getItem('access_token')
   const method = yaCalificado ? 'PUT' : 'POST'
