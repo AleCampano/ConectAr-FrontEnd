@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listarEventos, likeEvento, unlikeEvento, obtenerLikes } from '../../services/eventos'
-import { obtenerSolicitudes } from '../../services/friendships'
+import { obtenerSolicitudes, obtenerAmigos, obtenerNotificaciones } from '../../services/friendships'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import EventoPopup from '../../components/EventoPopup/EventoPopup'
 import Logo from '../../assets/Logo.png'
 import './home.css'
 
 const CATEGORIAS = [
-  { id: '',          label: '🔥 Todo'           },
-  { id: 'deporte',   label: '⚽ Deporte'         },
-  { id: 'concierto', label: '🎵 Música'          },
-  { id: 'cultura',   label: '🎭 Cultura'         },
-  { id: 'fiesta',    label: '🌙 Salida nocturna' },
-  { id: 'otro',      label: '✨ Otros'           },
+  { id: '',        label: '🔥 Todo'           },
+  { id: 'amigos',  label: '👥 Amigos'         },
+  { id: 'deporte', label: '⚽ Deporte'         },
+  { id: 'concierto', label: '🎵 Música'        },
+  { id: 'cultura', label: '🎭 Cultura'         },
+  { id: 'fiesta',  label: '🌙 Salida nocturna' },
+  { id: 'otro',    label: '✨ Otros'           },
 ]
 
 export default function Home() {
@@ -24,7 +25,12 @@ export default function Home() {
   const [likesMap, setLikesMap] = useState<Record<string, number>>({})
   const [likedEventos, setLikedEventos] = useState<string[]>([])
   const [solicitudesPendientes, setSolicitudesPendientes] = useState(0)
-
+  const [notifNoLeidas, setNotifNoLeidas] = useState(0)
+  const [amigosPopup, setAmigosPopup] = useState<any[] | null>(null) // null = cerrado
+  // amigos: { id, full_name, username }[]
+  // por evento: qué amigos le dieron like
+  const [amigosLikeMap, setAmigosLikeMap] = useState<Record<string, any[]>>({})
+  const [tooltipEvento, setTooltipEvento] = useState<string | null>(null)
   const userId = localStorage.getItem('user_id')
 
   useEffect(() => {
@@ -56,17 +62,66 @@ export default function Home() {
 
         setLikesMap(nuevoLikesMap)
         setLikedEventos(nuevosLikedEventos)
+
+        // Cruzar likes con amigos para saber qué amigos participan en cada evento
+        if (localStorage.getItem('access_token')) {
+          try {
+            const listaAmigos = await obtenerAmigos()
+            const amigosArr = Array.isArray(listaAmigos) ? listaAmigos : []
+
+            const amigosIds = new Set(amigosArr.map((a: any) => String(a.id ?? a.user_id)))
+            const nuevoAmigosLikeMap: Record<string, any[]> = {}
+
+            resultados.forEach((res, i) => {
+              const evId = String(data[i].id)
+              if (res.status === 'fulfilled') {
+                const likes: any[] = Array.isArray(res.value) ? res.value : (res.value?.likes ?? [])
+                nuevoAmigosLikeMap[evId] = likes
+                  .filter((l: any) => amigosIds.has(String(l.user_id ?? l.id)))
+                  .map((l: any) => {
+                    // Buscar el amigo para obtener su nombre
+                    const amigo = amigosArr.find((a: any) =>
+                      String(a.id ?? a.user_id) === String(l.user_id ?? l.id)
+                    )
+                    return amigo ?? { full_name: l.full_name ?? l.username ?? 'Amigo' }
+                  })
+              } else {
+                nuevoAmigosLikeMap[evId] = []
+              }
+            })
+
+            setAmigosLikeMap(nuevoAmigosLikeMap)
+            console.log('[AmigosLike] mapa:', nuevoAmigosLikeMap)
+            console.log('[AmigosLike] amigos cargados:', amigosArr.length)
+          } catch {
+            // silencioso
+          }
+        }
       } catch {
         setEventos([])
       }
     }
     cargarEventos()
 
-    // Badge de solicitudes pendientes
+    // Badge: solicitudes + notificaciones no leídas
     if (localStorage.getItem('access_token')) {
-      obtenerSolicitudes()
-        .then(sols => setSolicitudesPendientes(Array.isArray(sols) ? sols.length : 0))
-        .catch(() => {})
+      async function cargarBadge() {
+        try {
+          const [sols, notifs] = await Promise.allSettled([
+            obtenerSolicitudes(),
+            obtenerNotificaciones(),
+          ])
+          const numSols = sols.status === 'fulfilled' && Array.isArray(sols.value) ? sols.value.length : 0
+          const numNotifs = notifs.status === 'fulfilled' && Array.isArray(notifs.value)
+            ? notifs.value.filter((n: any) => !n.read).length : 0
+          setSolicitudesPendientes(numSols)
+          setNotifNoLeidas(numSols + numNotifs)
+        } catch { /* silencioso */ }
+      }
+      cargarBadge()
+      // Polling cada 30s para mantener el badge actualizado
+      const interval = setInterval(cargarBadge, 30000)
+      return () => clearInterval(interval)
     }
   }, [userId])
 
@@ -92,9 +147,22 @@ export default function Home() {
     }
   }
 
-  const eventosFiltrados = categoriaActiva
-    ? eventos.filter(ev => ev.event_type === categoriaActiva)
-    : eventos
+  const eventosFiltrados = (() => {
+    // Filtrar eventos privados que no son míos
+    const visibles = eventos.filter(ev => {
+      const esPrivado = ev.accessibility === 'privado'
+      const esMio = String(ev.creator_id ?? ev.created_by ?? ev.user_id ?? ev.users?.id ?? '') === String(userId ?? '')
+      return !esPrivado || esMio
+    })
+
+    if (categoriaActiva === 'amigos') {
+      return visibles.filter(ev => (amigosLikeMap[String(ev.id)] ?? []).length > 0)
+    }
+    if (categoriaActiva) {
+      return visibles.filter(ev => ev.event_type === categoriaActiva)
+    }
+    return visibles
+  })()
 
   return (
     <div className="home-wrapper">
@@ -119,8 +187,8 @@ export default function Home() {
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
-            {solicitudesPendientes > 0 && (
-              <span className="topbar-bell-badge">{solicitudesPendientes}</span>
+            {notifNoLeidas > 0 && (
+              <span className="topbar-bell-badge">{notifNoLeidas}</span>
             )}
           </button>
       </header>
@@ -209,6 +277,43 @@ export default function Home() {
                 )}
               </div>
 
+              {/* ── Amigos que participan ── */}
+              {(() => {
+                const amigosEvento = amigosLikeMap[String(ev.id)] ?? []
+                if (amigosEvento.length === 0) return null
+                const MAX_VISIBLE = 4
+                const visibles = amigosEvento.slice(0, MAX_VISIBLE)
+                const extra = amigosEvento.length - MAX_VISIBLE
+
+                return (
+                  <button
+                    className="card-amigos-row"
+                    onClick={e => { e.stopPropagation(); setAmigosPopup(amigosEvento) }}
+                  >
+                    <div className="card-amigos-avatares">
+                      {visibles.map((a: any, i: number) => {
+                        const nombre = a.full_name ?? a.username ?? 'Amigo'
+                        const inics = nombre.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
+                        return a.avatar_url
+                          ? <img key={i} src={a.avatar_url} alt={nombre} className="card-amigo-avatar" />
+                          : <div key={i} className="card-amigo-avatar card-amigo-avatar-ph">{inics}</div>
+                      })}
+                      {extra > 0 && (
+                        <div className="card-amigo-avatar card-amigo-avatar-extra">+{extra}</div>
+                      )}
+                    </div>
+                    <p className="card-amigos-texto">
+                      {amigosEvento.length === 1
+                        ? `${amigosEvento[0].full_name ?? amigosEvento[0].username} participa`
+                        : `${amigosEvento.length} amigos participan`}
+                    </p>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ marginLeft: 'auto', stroke: 'var(--text-dim)', flexShrink: 0 }}>
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                )
+              })()}
+
               {/* acciones */}
               <div className="card-acciones" onClick={e => e.stopPropagation()}>
                 <button
@@ -240,6 +345,36 @@ export default function Home() {
           )
         })}
       </main>
+
+      {/* ── Popup amigos que participan ── */}
+      {amigosPopup && (
+        <div className="amigos-popup-overlay" onClick={() => setAmigosPopup(null)}>
+          <div className="amigos-popup" onClick={e => e.stopPropagation()}>
+            <div className="amigos-popup-header">
+              <h3 className="amigos-popup-titulo">Amigos que participan</h3>
+              <button className="amigos-popup-cerrar" onClick={() => setAmigosPopup(null)}>✕</button>
+            </div>
+            <div className="amigos-popup-lista">
+              {amigosPopup.map((a: any, i: number) => {
+                const nombre = a.full_name ?? a.username ?? 'Amigo'
+                const iniciales = nombre.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
+                return (
+                  <div key={i} className="amigos-popup-item">
+                    {a.avatar_url
+                      ? <img src={a.avatar_url} alt={nombre} className="amigos-popup-avatar" />
+                      : <div className="amigos-popup-avatar amigos-popup-avatar-ph">{iniciales}</div>
+                    }
+                    <div className="amigos-popup-info">
+                      <span className="amigos-popup-nombre">{nombre}</span>
+                      {a.username && <span className="amigos-popup-username">@{a.username}</span>}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Popup evento ── */}
       {eventoSeleccionado && (

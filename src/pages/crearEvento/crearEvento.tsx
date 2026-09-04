@@ -6,6 +6,8 @@ import MapaPicker from '../../components/MapaPicker/MapaPicker'
 import './crearEvento.css'
 import { crearEvento } from '../../services/eventos'
 import { buscarDirecciones } from '../../ubicacionApi'
+import { obtenerAmigos } from '../../services/friendships'
+import { enviarMensajeDirecto } from '../../services/mensajesDirectos'
 
 const TIPOS = [
   { label: 'Deporte',        emoji: '⚽', value: 'deporte'   },
@@ -39,6 +41,14 @@ export default function CrearEvento() {
   const [coordenadas, setCoordenadas] = useState<[number, number] | null>(null)
   const [buscandoUbicacion, setBuscandoUbicacion] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Modal de invitación para eventos privados
+  const [modalInvitar, setModalInvitar] = useState(false)
+  const [eventoCreado, setEventoCreado] = useState<any>(null)
+  const [amigos, setAmigos] = useState<any[]>([])
+  const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set())
+  const [enviandoInvites, setEnviandoInvites] = useState(false)
+  const [invitesDone, setInvitesDone] = useState(false)
 
   // Busca automáticamente cuando el usuario deja de escribir por 600ms
   useEffect(() => {
@@ -115,11 +125,32 @@ export default function CrearEvento() {
     }
 
     try {
-      await crearEvento(nuevoEvento)
-      navigate('/home')
+      const ev = await crearEvento(nuevoEvento)
+      if (form.acceso === 'privado') {
+        // Abrir modal de invitación
+        setEventoCreado(ev)
+        const lista = await obtenerAmigos().catch(() => [])
+        setAmigos(Array.isArray(lista) ? lista : [])
+        setModalInvitar(true)
+      } else {
+        navigate('/home')
+      }
     } catch (err: any) {
       setError(err.message || 'Error al crear el evento. Intentá de nuevo.')
     }
+  }
+
+  async function handleEnviarInvitaciones() {
+    if (!eventoCreado || seleccionados.size === 0) { navigate('/home'); return }
+    setEnviandoInvites(true)
+    const titulo = eventoCreado.title ?? form.titulo
+    const mensaje = `¡Te invito a mi evento privado "${titulo}"! Buscalo en la app para unirte. 🎉`
+    await Promise.allSettled(
+      [...seleccionados].map(id => enviarMensajeDirecto(id, mensaje))
+    )
+    setEnviandoInvites(false)
+    setInvitesDone(true)
+    setTimeout(() => navigate('/home'), 1200)
   }
 
   const hoy = new Date().toISOString().split('T')[0]
@@ -290,6 +321,72 @@ export default function CrearEvento() {
         <Boton texto={modoEdicion ? 'Guardar cambios ✅' : 'Publicar evento 🚀'} tipo="submit" />
 
       </form>
+
+      {/* ── Modal invitar amigos (evento privado) ── */}
+      {modalInvitar && (
+        <div className="invitar-overlay">
+          <div className="invitar-modal">
+            <div className="invitar-header">
+              <h3 className="invitar-titulo">🔒 Evento privado creado</h3>
+              <p className="invitar-sub">Invitá a tus amigos por mensaje directo</p>
+            </div>
+
+            <div className="invitar-lista">
+              {amigos.length === 0 ? (
+                <p className="invitar-vacio">No tenés amigos para invitar todavía.</p>
+              ) : (
+                amigos.map((a: any) => {
+                  const id = String(a.id ?? a.user_id)
+                  const nombre = a.full_name ?? a.username ?? 'Amigo'
+                  const iniciales = nombre.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase()
+                  const sel = seleccionados.has(id)
+                  return (
+                    <button
+                      key={id}
+                      className={`invitar-item ${sel ? 'seleccionado' : ''}`}
+                      onClick={() => setSeleccionados(prev => {
+                        const n = new Set(prev)
+                        sel ? n.delete(id) : n.add(id)
+                        return n
+                      })}
+                    >
+                      {a.avatar_url
+                        ? <img src={a.avatar_url} alt={nombre} className="invitar-avatar" />
+                        : <div className="invitar-avatar invitar-avatar-ph">{iniciales}</div>
+                      }
+                      <span className="invitar-nombre">{nombre}</span>
+                      <div className={`invitar-check ${sel ? 'activo' : ''}`}>
+                        {sel && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" width="12" height="12"><polyline points="20 6 9 17 4 12" /></svg>}
+                      </div>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+
+            <div className="invitar-footer">
+              {invitesDone ? (
+                <p className="invitar-exito">✅ Invitaciones enviadas</p>
+              ) : (
+                <>
+                  <button
+                    className="invitar-btn-enviar"
+                    onClick={handleEnviarInvitaciones}
+                    disabled={enviandoInvites}
+                  >
+                    {enviandoInvites ? 'Enviando...' : seleccionados.size > 0
+                      ? `Invitar a ${seleccionados.size} amigo${seleccionados.size > 1 ? 's' : ''}`
+                      : 'Invitar amigos'}
+                  </button>
+                  <button className="invitar-btn-saltar" onClick={() => navigate('/home')}>
+                    Saltar por ahora
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -295,3 +295,171 @@ form {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* ── Modal invitar amigos ── */
+.invitar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.invitar-modal {
+  background: var(--bg-card);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 380px;
+  max-height: 80svh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slide-up 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.invitar-header {
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.invitar-titulo {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--text);
+}
+
+.invitar-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.invitar-lista {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px 0;
+}
+
+.invitar-vacio {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  padding: 24px;
+}
+
+.invitar-item {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.invitar-item:hover {
+  background: var(--bg-card2);
+}
+
+.invitar-item.seleccionado {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.invitar-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border2);
+  flex-shrink: 0;
+}
+
+.invitar-avatar-ph {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.invitar-nombre {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  text-align: left;
+}
+
+.invitar-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.invitar-check.activo {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.invitar-check.activo svg {
+  stroke: #000;
+}
+
+.invitar-footer {
+  padding: 14px 20px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.invitar-btn-enviar {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+
+.invitar-btn-enviar:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.invitar-btn-saltar {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+}
+
+.invitar-exito {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0;
+}

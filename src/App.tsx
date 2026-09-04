@@ -9,6 +9,8 @@ import Explorar from './pages/explorar/explorar'
 import VerParticipantes from './pages/verParticipantes/verParticipantes'
 import Notificaciones from './pages/notificaciones/notificaciones'
 import ChatEvento from './pages/chatEvento/chatEvento'
+import Mensajes from './pages/mensajes/mensajes'
+import ChatDirecto from './pages/mensajes/chatDirecto'
 
 // Wrapper para acceder al chat como página standalone desde /chat/:id
 function ChatPage() {
@@ -32,6 +34,8 @@ function App() {
           <Route path="/participantes/:id" element={<VerParticipantes />} />
           <Route path="/notificaciones" element={<Notificaciones />} />
           <Route path="/chat/:id" element={<ChatPage />} />
+          <Route path="/mensajes" element={<Mensajes />} />
+          <Route path="/mensajes/:userId" element={<ChatDirecto />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

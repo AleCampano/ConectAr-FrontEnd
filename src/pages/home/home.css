@@ -1,4 +1,4 @@
-/* ── Layout ── */
+  /* ── Layout ── */
 .home-wrapper {
   background: var(--bg);
   color: var(--text);
@@ -107,8 +107,9 @@
 
 .filtro-chip.activo {
   border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-bg);
+  color: #000;
+  background: var(--accent);
+  font-weight: 600;
 }
 
 .filtro-chip:hover:not(.activo) {
@@ -331,3 +332,246 @@
 
 
 
+
+/* ── Amigos que participan ── */
+.card-amigos-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 4px;
+  border-top: 1px solid var(--border);
+}
+
+.card-amigos-avatares {
+  display: flex;
+  align-items: center;
+}
+
+.card-amigo-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+  object-fit: cover;
+  margin-left: -8px;
+  flex-shrink: 0;
+}
+
+.card-amigo-avatar:first-child {
+  margin-left: 0;
+}
+
+.card-amigo-avatar-ph {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-amigo-avatar-extra {
+  background: var(--border2);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-amigos-texto {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ── Chevron en fila de amigos ── */
+.card-amigos-chevron {
+  margin-left: auto;
+  stroke: var(--text-dim);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.card-amigos-chevron.abierto {
+  transform: rotate(180deg);
+}
+
+.card-amigos-row {
+  cursor: pointer;
+  flex-wrap: wrap;
+}
+
+/* Lista expandida de amigos */
+.card-amigos-lista {
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: evstats-in 0.15s ease;
+}
+
+.card-amigos-lista-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-amigos-lista-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid var(--border2);
+}
+
+.card-amigos-lista-avatar-ph {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-amigos-lista-nombre {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ── Popup amigos que participan ── */
+.amigos-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fade-in 0.15s ease;
+  padding: 20px;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.amigos-popup {
+  background: var(--bg-card);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 360px;
+  padding: 0 0 24px;
+  animation: slide-up 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  max-height: 70svh;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.amigos-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.amigos-popup-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+.amigos-popup-cerrar {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.amigos-popup-lista {
+  overflow-y: auto;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.amigos-popup-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.amigos-popup-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--border2);
+}
+
+.amigos-popup-avatar-ph {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.amigos-popup-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.amigos-popup-nombre {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.amigos-popup-username {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ── card-amigos-row como botón ── */
+.card-amigos-row {
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.card-amigos-row:hover {
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}

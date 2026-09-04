@@ -26,3 +26,16 @@
   color: var(--text-dim);
   margin: 0;
 }
+
+.logro-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: grayscale(0.2);
+}
+
+.logro-icono {
+  font-size: 22px;
+  margin: 0;
+}

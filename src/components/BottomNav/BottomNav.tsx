@@ -43,7 +43,11 @@ export default function BottomNav() {
       </button>
 
       {/* Derecha: Mensajes */}
-      <button className="nav-btn" aria-label="Mensajes">
+      <button
+        className={`nav-btn ${pathname === '/mensajes' ? 'nav-btn-activo' : ''}`}
+        aria-label="Mensajes"
+        onClick={() => navigate('/mensajes')}
+      >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
           <line x1="22" y1="2" x2="11" y2="13" />
           <polygon points="22 2 15 22 11 13 2 9 22 2" />
