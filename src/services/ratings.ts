@@ -12,8 +12,7 @@ export async function calificarEvento(eventId: string, score: number, yaCalifica
     body: JSON.stringify({ score })
   })
   const body = await res.json().catch(() => ({}))
-  console.log(`[Rating] ${method} /events/${eventId}/rating → ${res.status}`, body)
-  if (!res.ok) throw new Error(`${res.status}: ${body?.error ?? body?.message ?? JSON.stringify(body)}`)
+  if (!res.ok) throw new Error(body?.error ?? body?.message ?? `Error ${res.status}`)
   return body
 }
 

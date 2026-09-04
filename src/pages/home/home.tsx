@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listarEventos, likeEvento, unlikeEvento, obtenerLikes } from '../../services/eventos'
-import { obtenerSolicitudes } from '../../services/friendships'
+import { obtenerSolicitudes, obtenerAmigos } from '../../services/friendships'
+import { useTheme } from '../../context/ThemeContext'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import EventoPopup from '../../components/EventoPopup/EventoPopup'
-import Logo from '../../assets/Logo.png'
+import LogoNoFondo from '../../assets/LogoNoFondo.png'
+import LogoNoFondoBlanco from '../../assets/LogoNoFondoBlanco.png'
 import './home.css'
 
 const CATEGORIAS = [
   { id: '',          label: '🔥 Todo'           },
+  { id: 'amigos',    label: '👥 Amigos'          },
   { id: 'deporte',   label: '⚽ Deporte'         },
   { id: 'concierto', label: '🎵 Música'          },
   { id: 'cultura',   label: '🎭 Cultura'         },
@@ -18,12 +21,18 @@ const CATEGORIAS = [
 
 export default function Home() {
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  const logo = theme === 'light' ? LogoNoFondoBlanco : LogoNoFondo
   const [eventos, setEventos] = useState<any[]>([])
   const [categoriaActiva, setCategoriaActiva] = useState('')
   const [eventoSeleccionado, setEventoSeleccionado] = useState<any | null>(null)
   const [likesMap, setLikesMap] = useState<Record<string, number>>({})
   const [likedEventos, setLikedEventos] = useState<string[]>([])
   const [solicitudesPendientes, setSolicitudesPendientes] = useState(0)
+  const [amigosExpandido, setAmigosExpandido] = useState<string | null>(null)
+  const [eventosConAmigos, setEventosConAmigos] = useState<Set<string>>(new Set())
+  // Mapa eventId → amigos en común (nombre + avatar)
+  const [amigosEnEvento, setAmigosEnEvento] = useState<Record<string, { full_name: string; avatar_url: string | null }[]>>({})
 
   const userId = localStorage.getItem('user_id')
 
@@ -62,10 +71,54 @@ export default function Home() {
     }
     cargarEventos()
 
-    // Badge de solicitudes pendientes
+    // Badge de solicitudes pendientes + cargar amigos
     if (localStorage.getItem('access_token')) {
       obtenerSolicitudes()
         .then(sols => setSolicitudesPendientes(Array.isArray(sols) ? sols.length : 0))
+        .catch(() => {})
+
+      // Cargar amigos y cruzar con participantes de cada evento
+      obtenerAmigos()
+        .then(async (amigos: any[]) => {
+          if (!Array.isArray(amigos) || amigos.length === 0) return
+          const amigosIds = new Set(amigos.map((a: any) => String(a.id ?? a.user_id)))
+
+          // Traer participantes de todos los eventos en paralelo
+          const evList = await listarEventos().catch(() => [])
+          const participantesResults = await Promise.allSettled(
+            evList.map((ev: any) =>
+              fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/events/${ev.id}/participants`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
+              }).then(r => r.ok ? r.json() : [])
+            )
+          )
+
+          const nuevosEventosConAmigos = new Set<string>()
+          const nuevoAmigosEnEvento: Record<string, { full_name: string; avatar_url: string | null }[]> = {}
+
+          evList.forEach((ev: any, i: number) => {
+            const res = participantesResults[i]
+            if (res.status !== 'fulfilled') return
+            const participantes: any[] = Array.isArray(res.value) ? res.value : []
+            const amigosAqui = participantes
+              .filter(p => {
+                const uid = String(p.user_id ?? p.users?.id ?? p.id ?? '')
+                return amigosIds.has(uid)
+              })
+              .map(p => ({
+                full_name: p.users?.full_name ?? p.full_name ?? p.users?.username ?? 'Amigo',
+                avatar_url: p.users?.avatar_url ?? p.avatar_url ?? null,
+              }))
+
+            if (amigosAqui.length > 0) {
+              nuevosEventosConAmigos.add(String(ev.id))
+              nuevoAmigosEnEvento[String(ev.id)] = amigosAqui
+            }
+          })
+
+          setEventosConAmigos(nuevosEventosConAmigos)
+          setAmigosEnEvento(nuevoAmigosEnEvento)
+        })
         .catch(() => {})
     }
   }, [userId])
@@ -92,9 +145,11 @@ export default function Home() {
     }
   }
 
-  const eventosFiltrados = categoriaActiva
-    ? eventos.filter(ev => ev.event_type === categoriaActiva)
-    : eventos
+  const eventosFiltrados = categoriaActiva === 'amigos'
+    ? eventos.filter(ev => eventosConAmigos.has(String(ev.id)))
+    : categoriaActiva
+      ? eventos.filter(ev => ev.event_type === categoriaActiva)
+      : eventos
 
   return (
     <div className="home-wrapper">
@@ -108,7 +163,7 @@ export default function Home() {
           </svg>
         </button>
 
-        <img src={Logo} alt="ConectAr" className="topbar-logo" />
+        <img src={logo} alt="ConectAr" className="topbar-logo" />
 
           <button
             className="topbar-icon-btn topbar-bell"
@@ -208,6 +263,58 @@ export default function Home() {
                   </button>
                 )}
               </div>
+
+              {/* Amigos en este evento */}
+              {amigosEnEvento[String(ev.id)]?.length > 0 && (
+                <div className="card-amigos-comunes">
+                  <button
+                    className="card-amigos-trigger"
+                    onClick={e => {
+                      e.stopPropagation()
+                      setAmigosExpandido(prev => prev === String(ev.id) ? null : String(ev.id))
+                    }}
+                  >
+                    <div className="card-amigos-avatares">
+                      {amigosEnEvento[String(ev.id)].slice(0, 3).map((a, i) => (
+                        a.avatar_url
+                          ? <img key={i} src={a.avatar_url} alt={a.full_name} className="card-amigo-avatar" />
+                          : <div key={i} className="card-amigo-avatar card-amigo-avatar-ph">
+                              {a.full_name.charAt(0).toUpperCase()}
+                            </div>
+                      ))}
+                    </div>
+                    <span className="card-amigos-texto">
+                      {amigosEnEvento[String(ev.id)].length === 1
+                        ? `${amigosEnEvento[String(ev.id)][0].full_name} va a este evento`
+                        : `${amigosEnEvento[String(ev.id)][0].full_name} y ${amigosEnEvento[String(ev.id)].length - 1} amigo${amigosEnEvento[String(ev.id)].length > 2 ? 's' : ''} más van a este evento`
+                      }
+                    </span>
+                    <svg
+                      className={`card-amigos-chevron ${amigosExpandido === String(ev.id) ? 'abierto' : ''}`}
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="14" height="14"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+
+                  {/* Lista desplegable */}
+                  {amigosExpandido === String(ev.id) && (
+                    <div className="card-amigos-lista" onClick={e => e.stopPropagation()}>
+                      {amigosEnEvento[String(ev.id)].map((a, i) => (
+                        <div key={i} className="card-amigo-row">
+                          {a.avatar_url
+                            ? <img src={a.avatar_url} alt={a.full_name} className="card-amigo-row-avatar" />
+                            : <div className="card-amigo-row-avatar card-amigo-avatar-ph">
+                                {a.full_name.charAt(0).toUpperCase()}
+                              </div>
+                          }
+                          <span className="card-amigo-row-nombre">{a.full_name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* acciones */}
               <div className="card-acciones" onClick={e => e.stopPropagation()}>

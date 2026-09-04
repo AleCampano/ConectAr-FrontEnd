@@ -93,27 +93,27 @@
 
 .filtro-chip {
   flex-shrink: 0;
-  background: var(--bg-input);
-  border: 1.5px solid var(--border2);
-  color: var(--text-muted);
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
   border-radius: 99px;
-  padding: 6px 14px;
+  padding: 7px 16px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  transition: background 0.18s, color 0.18s;
   white-space: nowrap;
+  letter-spacing: 0.2px;
 }
 
 .filtro-chip.activo {
+  background: var(--accent);
+  color: #000;
   border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-bg);
 }
 
 .filtro-chip:hover:not(.activo) {
-  border-color: var(--border2);
-  color: var(--text);
+  background: var(--accent-bg);
 }
 
 /* ── Feed ── */
@@ -122,7 +122,7 @@
   padding: 16px 12px 90px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   overflow-y: auto;
 }
 
@@ -136,9 +136,15 @@
 /* ── Feed Card ── */
 .feed-card {
   background: var(--bg-card);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border2);
   border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  transition: box-shadow 0.2s;
+}
+
+.feed-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* autor */
@@ -293,13 +299,14 @@
   align-items: center;
   justify-content: space-around;
   padding: 10px 14px 12px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border2);
+  background: var(--bg-card2);
 }
 
 .accion-btn {
   background: none;
   border: none;
-  color: var(--text-dim);
+  color: #888888;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -310,17 +317,17 @@
 }
 
 .accion-btn:hover {
-  color: var(--accent);
-  background: var(--accent-bg);
+  color: #b0b0b0;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .accion-btn-liked {
-  color: #e0245e;
+  color: #c0395a;
 }
 
 .accion-btn-liked:hover {
-  color: #c01a50;
-  background: rgba(224, 36, 94, 0.1);
+  color: #a02d4a;
+  background: rgba(192, 57, 90, 0.08);
 }
 
 .accion-count {
@@ -331,3 +338,113 @@
 
 
 
+
+/* ── Amigos en común en la card ── */
+.card-amigos-comunes {
+  border-top: 1px solid var(--border);
+}
+
+.card-amigos-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.card-amigos-trigger:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.card-amigos-avatares {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.card-amigo-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+  object-fit: cover;
+  margin-left: -6px;
+  flex-shrink: 0;
+}
+
+.card-amigo-avatar:first-child {
+  margin-left: 0;
+}
+
+.card-amigo-avatar-ph {
+  background: var(--bg-input);
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-amigos-texto {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.3;
+  flex: 1;
+}
+
+.card-amigos-chevron {
+  stroke: var(--text-dim);
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-amigos-chevron.abierto {
+  transform: rotate(180deg);
+}
+
+/* Lista desplegable */
+.card-amigos-lista {
+  padding: 4px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: amigos-in 0.18s ease;
+}
+
+@keyframes amigos-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-amigo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-amigo-row-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--border2);
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-input);
+  color: var(--accent);
+}
+
+.card-amigo-row-nombre {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}

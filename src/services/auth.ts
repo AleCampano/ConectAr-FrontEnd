@@ -8,7 +8,8 @@ export async function registrarse(datos: any) {
       username: datos.usuario,
       email: datos.correo,
       password: datos.contrasena,
-      full_name: datos.nombreCompleto
+      full_name: datos.nombreCompleto,
+      birth_date: datos.fechaNacimiento  // formato YYYY-MM-DD
     })
   })
   if (!res.ok) throw new Error('Error al registrarse')
@@ -52,4 +53,25 @@ export async function actualizarPerfil(id: string, datos: { avatar_url?: string;
   })
   if (!res.ok) throw new Error('Error al actualizar perfil')
   return res.json()
+}
+
+export async function olvidasteContrasena(email: string) {
+  const res = await fetch(`${BASE_URL}/users/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  })
+  if (!res.ok) throw new Error('Error al enviar el correo')
+  return res.json()
+}
+
+export async function resetPassword(accessToken: string, newPassword: string) {
+  const res = await fetch(`${BASE_URL}/users/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ access_token: accessToken, newPassword })
+  })
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(body?.error ?? 'Error al cambiar la contraseña')
+  return body
 }

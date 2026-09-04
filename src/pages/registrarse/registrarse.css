@@ -34,3 +34,56 @@ form {
 .pie a {
   color: var(--accent);
 }
+
+/* ── Fecha de nacimiento ── */
+.reg-fecha-wrapper {
+  width: 100%;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reg-fecha-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding-left: 4px;
+}
+
+.reg-fecha-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border2);
+  border-radius: 12px;
+  padding: 13px 14px;
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.reg-fecha-input:focus {
+  border-color: var(--accent);
+}
+
+.reg-fecha-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.6);
+  cursor: pointer;
+}
+
+.reg-fecha-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin: 0;
+  padding-left: 4px;
+}
+
+.error-form {
+  color: #ff5555;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 8px;
+}

@@ -46,49 +46,32 @@
   color: var(--text);
 }
 
-/* ── Tabs ── */
-.notif-tabs {
-  display: flex;
-  gap: 8px;
-  padding: 12px 16px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.notif-tab {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  border-bottom: 2.5px solid transparent;
-  color: var(--text-muted);
-  font-size: 14px;
-  font-weight: 600;
-  padding: 8px 4px 10px;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-}
-
-.notif-tab.activo {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
-
-.notif-tab:hover:not(.activo) {
-  color: var(--text);
-}
-
-/* ── Badge ── */
-.notif-badge {
+/* ── Badge en el header ── */
+.notif-badge-header {
   background: #e0245e;
   color: #fff;
   font-size: 11px;
   font-weight: 700;
   border-radius: 99px;
-  padding: 1px 6px;
-  min-width: 18px;
-  text-align: center;
-  line-height: 16px;
+  padding: 2px 8px;
+  margin-left: auto;
+}
+
+/* ── Avatar con ícono de tipo encima ── */
+.notif-item-avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.notif-tipo-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -4px;
+  font-size: 13px;
+  line-height: 1;
+  background: var(--bg-card);
+  border-radius: 50%;
+  padding: 1px;
 }
 
 /* ── Scroll ── */
@@ -149,19 +132,7 @@
   flex-shrink: 0;
 }
 
-/* Icono (actividad) */
-.notif-item-icono {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--bg-input);
-  border: 1.5px solid var(--border2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
-}
+/* Icono (ya no se usa — reemplazado por notif-tipo-badge) */
 
 /* Info */
 .notif-item-info {

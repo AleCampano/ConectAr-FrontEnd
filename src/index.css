@@ -10,18 +10,18 @@
 :root,
 [data-theme='dark'] {
   color-scheme: dark;
-  --bg:          #0d0d0d;
-  --bg-card:     #111;
-  --bg-card2:    #161616;
-  --bg-input:    #1a1a1a;
-  --border:      #1e1e1e;
-  --border2:     #2a2a2a;
-  --text:        #ffffff;
-  --text-muted:  #aaaaaa;
-  --text-dim:    #666666;
+  --bg:          #141414;
+  --bg-card:     #1e1e1e;
+  --bg-card2:    #252525;
+  --bg-input:    #2a2a2a;
+  --border:      #2e2e2e;
+  --border2:     #383838;
+  --text:        #f0f0f0;
+  --text-muted:  #a8a8a8;
+  --text-dim:    #888888;
   --accent:      #00d4ff;
   --accent-bg:   rgba(0, 212, 255, 0.08);
-  --nav-bg:      #111;
+  --nav-bg:      #1a1a1a;
 }
 
 /* ── Tema claro ── */

@@ -10,9 +10,8 @@ import {
 import BottomNav from '../../components/BottomNav/BottomNav'
 import './notificaciones.css'
 
-// Formato nuevo del back: GET /friendships/requests
 type Solicitud = {
-  id: string        // id de la fila en friendships — se usa para aceptar/rechazar
+  id: string
   sender_id: string
   sender: {
     id: string
@@ -23,7 +22,6 @@ type Solicitud = {
   created_at: string
 }
 
-// Formato nuevo del back: GET /notifications
 type Notificacion = {
   id: string
   type: 'friend_request' | 'like' | 'message' | string
@@ -36,6 +34,11 @@ type Notificacion = {
   } | null
   event: { id: string; title: string } | null
 }
+
+// Item unificado para la lista
+type Item =
+  | { kind: 'solicitud'; data: Solicitud; fecha: Date }
+  | { kind: 'notif';     data: Notificacion; fecha: Date }
 
 function tiempoRelativo(fecha: string) {
   const diff = Date.now() - new Date(fecha).getTime()
@@ -55,9 +58,23 @@ function Avatar({ url, nombre }: { url: string | null; nombre: string }) {
   return <div className="notif-avatar-ph">{iniciales}</div>
 }
 
+function iconoTipo(type: string) {
+  if (type === 'like') return '❤️'
+  if (type === 'message') return '💬'
+  if (type === 'friend_request') return '👤'
+  return '🔔'
+}
+
+function textoNotif(n: Notificacion) {
+  const nombre = n.actor?.full_name ?? n.actor?.username ?? 'Alguien'
+  if (n.type === 'like') return `${nombre} le dio like a tu evento "${n.event?.title ?? ''}"`
+  if (n.type === 'message') return `${nombre} te envió un mensaje`
+  if (n.type === 'friend_request') return `${nombre} te envió una solicitud de amistad`
+  return `Nueva notificación de ${nombre}`
+}
+
 export default function Notificaciones() {
   const navigate = useNavigate()
-  const [tab, setTab] = useState<'solicitudes' | 'actividad'>('solicitudes')
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([])
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([])
   const [cargando, setCargando] = useState(true)
@@ -73,6 +90,9 @@ export default function Notificaciones() {
         ])
         if (sols.status === 'fulfilled') setSolicitudes(Array.isArray(sols.value) ? sols.value : [])
         if (notifs.status === 'fulfilled') setNotificaciones(Array.isArray(notifs.value) ? notifs.value : [])
+
+        // Debug
+        console.log('[Notificaciones]', notifs.status === 'fulfilled' ? notifs.value : notifs.reason)
       } finally {
         setCargando(false)
       }
@@ -113,22 +133,23 @@ export default function Notificaciones() {
     }
   }
 
-  // Actividad: todo excepto friend_request (esas van en la tab de solicitudes)
-  const actividad = notificaciones.filter(n => n.type !== 'friend_request')
-  const actividadNoLeida = actividad.filter(n => !n.read).length
+  // Mezclar solicitudes y notificaciones en una sola lista ordenada por fecha
+  const items: Item[] = [
+    ...solicitudes.map(s => ({
+      kind: 'solicitud' as const,
+      data: s,
+      fecha: new Date(s.created_at),
+    })),
+    ...notificaciones
+      .filter(n => n.type !== 'friend_request') // las solicitudes vienen del otro endpoint
+      .map(n => ({
+        kind: 'notif' as const,
+        data: n,
+        fecha: new Date(n.created_at),
+      })),
+  ].sort((a, b) => b.fecha.getTime() - a.fecha.getTime())
 
-  function iconoTipo(type: string) {
-    if (type === 'like') return '❤️'
-    if (type === 'message') return '💬'
-    return '🔔'
-  }
-
-  function textoNotif(n: Notificacion) {
-    const nombre = n.actor?.full_name ?? n.actor?.username ?? 'Alguien'
-    if (n.type === 'like') return `${nombre} le dio like a tu evento "${n.event?.title ?? ''}"`
-    if (n.type === 'message') return `${nombre} te envió un mensaje`
-    return `Nueva notificación de ${nombre}`
-  }
+  const noLeidas = notificaciones.filter(n => !n.read && n.type !== 'friend_request').length
 
   return (
     <div className="notif-wrapper">
@@ -141,48 +162,29 @@ export default function Notificaciones() {
           </svg>
         </button>
         <h1 className="notif-titulo">Notificaciones</h1>
+        {noLeidas > 0 && <span className="notif-badge-header">{noLeidas}</span>}
       </header>
 
-      {/* Tabs */}
-      <div className="notif-tabs">
-        <button
-          className={`notif-tab ${tab === 'solicitudes' ? 'activo' : ''}`}
-          onClick={() => setTab('solicitudes')}
-        >
-          Solicitudes
-          {solicitudes.length > 0 && (
-            <span className="notif-badge">{solicitudes.length}</span>
-          )}
-        </button>
-        <button
-          className={`notif-tab ${tab === 'actividad' ? 'activo' : ''}`}
-          onClick={() => setTab('actividad')}
-        >
-          Actividad
-          {actividadNoLeida > 0 && (
-            <span className="notif-badge">{actividadNoLeida}</span>
-          )}
-        </button>
-      </div>
-
       <div className="notif-scroll">
-
         {cargando ? (
           <p className="notif-vacio">Cargando...</p>
 
-        ) : tab === 'solicitudes' ? (
+        ) : items.length === 0 ? (
+          <p className="notif-vacio">No tenés notificaciones todavía.</p>
 
-          /* ── Solicitudes ── */
-          solicitudes.length === 0 ? (
-            <p className="notif-vacio">No tenés solicitudes pendientes.</p>
-          ) : (
-            solicitudes.map(sol => {
+        ) : (
+          items.map((item, i) => {
+
+            /* ── Solicitud de amistad ── */
+            if (item.kind === 'solicitud') {
+              const sol = item.data
               const u = sol.sender
               const ocupado = procesando.includes(sol.id)
               return (
-                <div key={sol.id} className="notif-item">
+                <div key={`sol-${sol.id}`} className="notif-item">
                   <div className="notif-item-avatar">
                     <Avatar url={u?.avatar_url ?? null} nombre={u?.full_name ?? u?.username ?? '?'} />
+                    <span className="notif-tipo-badge">👤</span>
                   </div>
                   <div className="notif-item-info">
                     <p className="notif-item-texto">
@@ -208,31 +210,31 @@ export default function Notificaciones() {
                   </div>
                 </div>
               )
-            })
-          )
+            }
 
-        ) : (
-
-          /* ── Actividad ── */
-          actividad.length === 0 ? (
-            <p className="notif-vacio">No hay actividad reciente.</p>
-          ) : (
-            actividad.map(n => (
+            /* ── Notificación (like, mensaje, etc.) ── */
+            const n = item.data
+            return (
               <div
-                key={n.id}
-                className={`notif-item ${n.read ? '' : 'notif-item-nueva'}`}
+                key={`notif-${n.id}-${i}`}
+                className={`notif-item ${!n.read ? 'notif-item-nueva' : ''}`}
                 onClick={() => !n.read && handleMarcarLeida(n.id)}
               >
-                <div className="notif-item-icono">{iconoTipo(n.type)}</div>
+                <div className="notif-item-avatar">
+                  <Avatar
+                    url={n.actor?.avatar_url ?? null}
+                    nombre={n.actor?.full_name ?? n.actor?.username ?? '?'}
+                  />
+                  <span className="notif-tipo-badge">{iconoTipo(n.type)}</span>
+                </div>
                 <div className="notif-item-info">
                   <p className="notif-item-texto">{textoNotif(n)}</p>
                   <span className="notif-item-tiempo">{tiempoRelativo(n.created_at)}</span>
                 </div>
                 {!n.read && <div className="notif-punto" />}
               </div>
-            ))
-          )
-
+            )
+          })
         )}
       </div>
 
