@@ -97,3 +97,23 @@ body {
 
 .nav-btn-crear { color: var(--accent); }
 .nav-btn-crear svg { stroke: var(--accent); }
+
+/* Badge de mensajes no leídos en BottomNav */
+.nav-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  background: #e0245e;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 99px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  pointer-events: none;
+}

@@ -222,3 +222,12 @@
   flex-shrink: 0;
   align-self: center;
 }
+
+/* ── Notificación clickable (mensaje / like) ── */
+.notif-item-clickable {
+  cursor: pointer;
+}
+
+.notif-item-clickable:hover {
+  background: var(--bg-card);
+}

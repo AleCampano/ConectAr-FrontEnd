@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useNavigate, useParams } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
+import { MensajesProvider } from './context/MensajesContext'
 import Registrarse from './pages/registrarse/registrarse'
 import Login from './pages/login/login'
 import Home from './pages/home/home'
@@ -11,6 +12,8 @@ import Notificaciones from './pages/notificaciones/notificaciones'
 import ChatEvento from './pages/chatEvento/chatEvento'
 import Mensajes from './pages/mensajes/mensajes'
 import ChatDirecto from './pages/mensajes/chatDirecto'
+import RecuperarContrasena from './pages/recuperarContrasena/recuperarContrasena'
+import ResetPassword from './pages/resetPassword/resetPassword'
 
 // Wrapper para acceder al chat como página standalone desde /chat/:id
 function ChatPage() {
@@ -23,21 +26,25 @@ function ChatPage() {
 function App() {
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Registrarse />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="/explorar" element={<Explorar />} />
-          <Route path="/crear-evento" element={<CrearEvento />} />
-          <Route path="/participantes/:id" element={<VerParticipantes />} />
-          <Route path="/notificaciones" element={<Notificaciones />} />
-          <Route path="/chat/:id" element={<ChatPage />} />
-          <Route path="/mensajes" element={<Mensajes />} />
-          <Route path="/mensajes/:userId" element={<ChatDirecto />} />
-        </Routes>
-      </BrowserRouter>
+      <MensajesProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Registrarse />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/explorar" element={<Explorar />} />
+            <Route path="/crear-evento" element={<CrearEvento />} />
+            <Route path="/participantes/:id" element={<VerParticipantes />} />
+            <Route path="/notificaciones" element={<Notificaciones />} />
+            <Route path="/chat/:id" element={<ChatPage />} />
+            <Route path="/mensajes" element={<Mensajes />} />
+            <Route path="/mensajes/:userId" element={<ChatDirecto />} />
+            <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+          </Routes>
+        </BrowserRouter>
+      </MensajesProvider>
     </ThemeProvider>
   )
 }

@@ -1,8 +1,10 @@
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useMensajes } from '../../context/MensajesContext'
 
 export default function BottomNav() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const { mensajesNoLeidos } = useMensajes()
 
   const enHome = pathname === '/home'
 
@@ -42,16 +44,22 @@ export default function BottomNav() {
         <span>Crear</span>
       </button>
 
-      {/* Derecha: Mensajes */}
+      {/* Derecha: Mensajes con badge */}
       <button
-        className={`nav-btn ${pathname === '/mensajes' ? 'nav-btn-activo' : ''}`}
+        className={`nav-btn ${pathname.startsWith('/mensajes') ? 'nav-btn-activo' : ''}`}
         aria-label="Mensajes"
         onClick={() => navigate('/mensajes')}
+        style={{ position: 'relative' }}
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
-          <line x1="22" y1="2" x2="11" y2="13" />
-          <polygon points="22 2 15 22 11 13 2 9 22 2" />
-        </svg>
+        <span style={{ position: 'relative', display: 'inline-flex' }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+          {mensajesNoLeidos > 0 && (
+            <span className="nav-badge">{mensajesNoLeidos > 99 ? '99+' : mensajesNoLeidos}</span>
+          )}
+        </span>
         <span>Mensajes</span>
       </button>
 

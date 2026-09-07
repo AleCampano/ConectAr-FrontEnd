@@ -3,8 +3,12 @@ import { BASE_URL } from '../config/api'
 export async function obtenerNotificaciones() {
   const token = localStorage.getItem('access_token')
   const res = await fetch(`${BASE_URL}/notifications`, {
-    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    cache: 'no-store',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    }
   })
+  if (res.status === 304) return []
   if (!res.ok) throw new Error('Error al obtener notificaciones')
   return res.json()
 }

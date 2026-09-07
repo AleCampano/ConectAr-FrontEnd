@@ -24,10 +24,11 @@ type Solicitud = {
 
 type Notificacion = {
   id: string
-  type: 'friend_request' | 'like' | 'message' | string
+  type: 'friend_request' | 'friend_request_accepted' | 'like' | 'join' | 'comment' | 'new_message' | string
   read: boolean
   created_at: string
   actor: {
+    id?: string  // el backend aún no lo devuelve
     full_name: string
     username: string
     avatar_url: string | null
@@ -60,16 +61,21 @@ function Avatar({ url, nombre }: { url: string | null; nombre: string }) {
 
 function iconoTipo(type: string) {
   if (type === 'like') return '❤️'
-  if (type === 'message') return '💬'
-  if (type === 'friend_request') return '👤'
+  if (type === 'message' || type === 'new_message') return '💬'
+  if (type === 'join') return '🎉'
+  if (type === 'comment') return '💬'
+  if (type === 'friend_request' || type === 'friend_request_accepted') return '👤'
   return '🔔'
 }
 
 function textoNotif(n: Notificacion) {
   const nombre = n.actor?.full_name ?? n.actor?.username ?? 'Alguien'
   if (n.type === 'like') return `${nombre} le dio like a tu evento "${n.event?.title ?? ''}"`
-  if (n.type === 'message') return `${nombre} te envió un mensaje`
+  if (n.type === 'message' || n.type === 'new_message') return `${nombre} te envió un mensaje`
+  if (n.type === 'join') return `${nombre} se unió a tu evento "${n.event?.title ?? ''}"`
+  if (n.type === 'comment') return `${nombre} comentó en tu evento "${n.event?.title ?? ''}"`
   if (n.type === 'friend_request') return `${nombre} te envió una solicitud de amistad`
+  if (n.type === 'friend_request_accepted') return `${nombre} aceptó tu solicitud de amistad`
   return `Nueva notificación de ${nombre}`
 }
 
@@ -133,6 +139,18 @@ export default function Notificaciones() {
     }
   }
 
+  async function handleClickNotif(n: Notificacion) {
+    // Marcar como leída si no lo está
+    if (!n.read) await handleMarcarLeida(n.id)
+
+    // Navegar según el tipo
+    if ((n.type === 'message' || n.type === 'new_message') && n.actor?.id) {
+      navigate(`/mensajes/${n.actor.id}`)
+    } else if (n.type === 'like' && n.event?.id) {
+      navigate(`/home`)
+    }
+  }
+
   // Mezclar solicitudes y notificaciones en una sola lista ordenada por fecha
   const items: Item[] = [
     ...solicitudes.map(s => ({
@@ -149,7 +167,7 @@ export default function Notificaciones() {
       })),
   ].sort((a, b) => b.fecha.getTime() - a.fecha.getTime())
 
-  const noLeidas = notificaciones.filter(n => !n.read && n.type !== 'friend_request').length
+  const noLeidas = notificaciones.filter(n => !n.read && n.type !== 'friend_request' && n.type !== 'friend_request_accepted').length
 
   return (
     <div className="notif-wrapper">
@@ -217,8 +235,8 @@ export default function Notificaciones() {
             return (
               <div
                 key={`notif-${n.id}-${i}`}
-                className={`notif-item ${!n.read ? 'notif-item-nueva' : ''}`}
-                onClick={() => !n.read && handleMarcarLeida(n.id)}
+                className={`notif-item ${!n.read ? 'notif-item-nueva' : ''} ${n.type === 'message' || n.type === 'like' ? 'notif-item-clickable' : ''}`}
+                onClick={() => handleClickNotif(n)}
               >
                 <div className="notif-item-avatar">
                   <Avatar

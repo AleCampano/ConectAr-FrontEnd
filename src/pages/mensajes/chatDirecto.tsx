@@ -182,10 +182,10 @@ export default function ChatDirecto() {
               )
             }
             const msg = item.valor
-            const esMio = String(msg.sender_id) === String(miId)
+            const esMio = msg.is_mine ?? (String(msg.sender_id) === String(miId))
             const senderData = msg.sender ?? null
             const avatarUrl = esMio ? null : (senderData?.avatar_url ?? otroUsuario?.avatar_url ?? null)
-            const senderNombre = esMio ? 'Yo' : (senderData?.full_name ?? nombre)
+            const senderNombre = esMio ? 'Yo' : (senderData?.full_name ?? senderData?.username ?? nombre)
 
             return (
               <div key={msg.id} className={`cd-msg-row ${esMio ? 'mio' : ''}`}>
@@ -195,8 +195,16 @@ export default function ChatDirecto() {
                   </div>
                 )}
                 <div className={`cd-burbuja ${esMio ? 'mia' : ''}`}>
+                  {!esMio && (
+                    <span className="cd-sender-nombre">{senderNombre}</span>
+                  )}
                   <p className="cd-content">{msg.content}</p>
-                  <span className="cd-hora">{formatHora(msg.created_at)}</span>
+                  <div className="cd-burbuja-footer">
+                    <span className="cd-hora">{formatHora(msg.created_at)}</span>
+                    {esMio && (
+                      <span className="cd-leido">{msg.read ? '✓✓' : '✓'}</span>
+                    )}
+                  </div>
                 </div>
               </div>
             )

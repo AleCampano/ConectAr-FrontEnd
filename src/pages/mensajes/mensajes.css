@@ -295,3 +295,9 @@
   stroke: var(--text-dim);
   flex-shrink: 0;
 }
+
+/* Preview con indicador "Tú:" */
+.msj-preview-tu {
+  color: var(--text-muted);
+  font-weight: 600;
+}

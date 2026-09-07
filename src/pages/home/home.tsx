@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { listarEventos, likeEvento, unlikeEvento, obtenerLikes } from '../../services/eventos'
+import { listarEventos, likeEvento, unlikeEvento, obtenerLikes, listarPersonas } from '../../services/eventos'
 import { obtenerSolicitudes, obtenerAmigos, obtenerNotificaciones } from '../../services/friendships'
+import { listarConversaciones } from '../../services/mensajesDirectos'
+import { useMensajes } from '../../context/MensajesContext'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import EventoPopup from '../../components/EventoPopup/EventoPopup'
 import Logo from '../../assets/Logo.png'
@@ -19,6 +21,7 @@ const CATEGORIAS = [
 
 export default function Home() {
   const navigate = useNavigate()
+  const { setMensajesNoLeidos } = useMensajes()
   const [eventos, setEventos] = useState<any[]>([])
   const [categoriaActiva, setCategoriaActiva] = useState('')
   const [eventoSeleccionado, setEventoSeleccionado] = useState<any | null>(null)
@@ -63,27 +66,38 @@ export default function Home() {
         setLikesMap(nuevoLikesMap)
         setLikedEventos(nuevosLikedEventos)
 
-        // Cruzar likes con amigos para saber qué amigos participan en cada evento
+        // Cruzar participantes con amigos para saber qué amigos participan en cada evento
         if (localStorage.getItem('access_token')) {
           try {
             const listaAmigos = await obtenerAmigos()
             const amigosArr = Array.isArray(listaAmigos) ? listaAmigos : []
-
             const amigosIds = new Set(amigosArr.map((a: any) => String(a.id ?? a.user_id)))
+
+            // Traer participantes de cada evento en paralelo
+            const participantesResultados = await Promise.allSettled(
+              data.map((ev: any) => listarPersonas(String(ev.id)))
+            )
+
             const nuevoAmigosLikeMap: Record<string, any[]> = {}
 
-            resultados.forEach((res, i) => {
+            participantesResultados.forEach((res, i) => {
               const evId = String(data[i].id)
               if (res.status === 'fulfilled') {
-                const likes: any[] = Array.isArray(res.value) ? res.value : (res.value?.likes ?? [])
-                nuevoAmigosLikeMap[evId] = likes
-                  .filter((l: any) => amigosIds.has(String(l.user_id ?? l.id)))
-                  .map((l: any) => {
-                    // Buscar el amigo para obtener su nombre
-                    const amigo = amigosArr.find((a: any) =>
-                      String(a.id ?? a.user_id) === String(l.user_id ?? l.id)
-                    )
-                    return amigo ?? { full_name: l.full_name ?? l.username ?? 'Amigo' }
+                const participantes: any[] = Array.isArray(res.value) ? res.value : []
+                nuevoAmigosLikeMap[evId] = participantes
+                  .filter((p: any) => {
+                    const pid = String(p.user_id ?? p.users?.id ?? p.id ?? '')
+                    return amigosIds.has(pid)
+                  })
+                  .map((p: any) => {
+                    const u = p.users ?? p
+                    const pid = String(p.user_id ?? u.id ?? '')
+                    const amigo = amigosArr.find((a: any) => String(a.id ?? a.user_id) === pid)
+                    return amigo ?? {
+                      full_name: u.full_name ?? u.username ?? 'Amigo',
+                      username: u.username ?? '',
+                      avatar_url: u.avatar_url ?? null,
+                    }
                   })
               } else {
                 nuevoAmigosLikeMap[evId] = []
@@ -91,8 +105,6 @@ export default function Home() {
             })
 
             setAmigosLikeMap(nuevoAmigosLikeMap)
-            console.log('[AmigosLike] mapa:', nuevoAmigosLikeMap)
-            console.log('[AmigosLike] amigos cargados:', amigosArr.length)
           } catch {
             // silencioso
           }
@@ -107,15 +119,19 @@ export default function Home() {
     if (localStorage.getItem('access_token')) {
       async function cargarBadge() {
         try {
-          const [sols, notifs] = await Promise.allSettled([
+          const [sols, notifs, convs] = await Promise.allSettled([
             obtenerSolicitudes(),
             obtenerNotificaciones(),
+            listarConversaciones(),
           ])
           const numSols = sols.status === 'fulfilled' && Array.isArray(sols.value) ? sols.value.length : 0
           const numNotifs = notifs.status === 'fulfilled' && Array.isArray(notifs.value)
             ? notifs.value.filter((n: any) => !n.read).length : 0
+          const numMensajes = convs.status === 'fulfilled' && Array.isArray(convs.value)
+            ? convs.value.reduce((acc: number, c: any) => acc + (c.noLeidos ?? 0), 0) : 0
           setSolicitudesPendientes(numSols)
-          setNotifNoLeidas(numSols + numNotifs)
+          setNotifNoLeidas(numSols + numNotifs + numMensajes)
+          setMensajesNoLeidos(numMensajes)
         } catch { /* silencioso */ }
       }
       cargarBadge()

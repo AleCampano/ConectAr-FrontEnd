@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listarConversaciones, Conversacion } from '../../services/mensajesDirectos'
 import { obtenerAmigos } from '../../services/friendships'
+import { useMensajes } from '../../context/MensajesContext'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import './mensajes.css'
 
@@ -25,6 +26,7 @@ function Avatar({ url, nombre, size = 46 }: { url: string | null; nombre: string
 
 export default function Mensajes() {
   const navigate = useNavigate()
+  const { setMensajesNoLeidos } = useMensajes()
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([])
   const [amigos, setAmigos] = useState<any[]>([])
   const [busqueda, setBusqueda] = useState('')
@@ -39,7 +41,12 @@ export default function Mensajes() {
           listarConversaciones(),
           obtenerAmigos()
         ])
-        if (convs.status === 'fulfilled') setConversaciones(convs.value)
+        if (convs.status === 'fulfilled') {
+          setConversaciones(convs.value)
+          // Actualizar badge global
+          const total = convs.value.reduce((acc, c) => acc + (c.noLeidos ?? 0), 0)
+          setMensajesNoLeidos(total)
+        }
         if (amigosData.status === 'fulfilled') setAmigos(Array.isArray(amigosData.value) ? amigosData.value : [])
       } finally {
         setCargando(false)
@@ -131,6 +138,7 @@ export default function Mensajes() {
                       <span className="msj-conv-tiempo">{tiempoRelativo(conv.ultimaFecha)}</span>
                     </div>
                     <p className={`msj-conv-preview ${conv.noLeidos > 0 ? 'no-leido' : ''}`}>
+                      {conv.ultimoEsMio && <span className="msj-preview-tu">Tú: </span>}
                       {conv.ultimoMensaje}
                     </p>
                   </div>
