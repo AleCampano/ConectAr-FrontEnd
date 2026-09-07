@@ -140,25 +140,48 @@ export default function Notificaciones() {
   }
 
   async function handleClickNotif(n: Notificacion) {
-    // Marcar como leída si no lo está
-    if (!n.read) await handleMarcarLeida(n.id)
-
-    // Navegar según el tipo
+    // Si es mensaje, marcar como leídas todas las notificaciones de ese actor
     if ((n.type === 'message' || n.type === 'new_message') && n.actor?.id) {
+      const delMismoActor = notificaciones.filter(
+        x => (x.type === 'message' || x.type === 'new_message') && x.actor?.id === n.actor?.id && !x.read
+      )
+      await Promise.allSettled(delMismoActor.map(x => handleMarcarLeida(x.id)))
       navigate(`/mensajes/${n.actor.id}`)
-    } else if (n.type === 'like' && n.event?.id) {
+      return
+    }
+    // Para el resto: marcar solo la tocada
+    if (!n.read) await handleMarcarLeida(n.id)
+    if (n.type === 'like' && n.event?.id) {
       navigate(`/home`)
     }
   }
 
   // Mezclar solicitudes y notificaciones en una sola lista ordenada por fecha
+  // Las notificaciones de mensaje se agrupan por actor — solo aparece la más reciente de cada conversación
+  const notificacionesAgrupadas = (() => {
+    const vistas = new Set<string>()
+    const resultado: Notificacion[] = []
+    // Ordenar por fecha desc primero para quedarnos con la más reciente de cada actor
+    const ordenadas = [...notificaciones].sort((a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+    for (const n of ordenadas) {
+      const esMsg = n.type === 'message' || n.type === 'new_message'
+      const key = esMsg && n.actor?.id ? `msg-${n.actor.id}` : n.id
+      if (vistas.has(key)) continue
+      vistas.add(key)
+      resultado.push(n)
+    }
+    return resultado
+  })()
+
   const items: Item[] = [
     ...solicitudes.map(s => ({
       kind: 'solicitud' as const,
       data: s,
       fecha: new Date(s.created_at),
     })),
-    ...notificaciones
+    ...notificacionesAgrupadas
       .filter(n => n.type !== 'friend_request') // las solicitudes vienen del otro endpoint
       .map(n => ({
         kind: 'notif' as const,
