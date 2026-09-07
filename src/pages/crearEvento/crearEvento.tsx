@@ -8,6 +8,7 @@ import { crearEvento } from '../../services/eventos'
 import { buscarDirecciones } from '../../ubicacionApi'
 import { obtenerAmigos } from '../../services/friendships'
 import { enviarMensajeDirecto } from '../../services/mensajesDirectos'
+import { invitarUsuario } from '../../services/invitaciones'
 
 const TIPOS = [
   { label: 'Deporte',        emoji: '⚽', value: 'deporte'   },
@@ -144,9 +145,15 @@ export default function CrearEvento() {
     if (!eventoCreado || seleccionados.size === 0) { navigate('/home'); return }
     setEnviandoInvites(true)
     const titulo = eventoCreado.title ?? form.titulo
+    const eventId = String(eventoCreado.id)
     const mensaje = `¡Te invito a mi evento privado "${titulo}"! Buscalo en la app para unirte. 🎉`
+
+    // Invitar por el sistema de invitaciones Y mandar mensaje directo en paralelo
     await Promise.allSettled(
-      [...seleccionados].map(id => enviarMensajeDirecto(id, mensaje))
+      [...seleccionados].flatMap(userId => [
+        invitarUsuario(eventId, userId),
+        enviarMensajeDirecto(userId, mensaje),
+      ])
     )
     setEnviandoInvites(false)
     setInvitesDone(true)

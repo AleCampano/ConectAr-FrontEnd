@@ -29,11 +29,8 @@ export default function Home() {
   const [likedEventos, setLikedEventos] = useState<string[]>([])
   const [solicitudesPendientes, setSolicitudesPendientes] = useState(0)
   const [notifNoLeidas, setNotifNoLeidas] = useState(0)
-  const [amigosPopup, setAmigosPopup] = useState<any[] | null>(null) // null = cerrado
-  // amigos: { id, full_name, username }[]
-  // por evento: qué amigos le dieron like
+  const [amigosPopup, setAmigosPopup] = useState<any[] | null>(null)
   const [amigosLikeMap, setAmigosLikeMap] = useState<Record<string, any[]>>({})
-  const [tooltipEvento, setTooltipEvento] = useState<string | null>(null)
   const userId = localStorage.getItem('user_id')
 
   useEffect(() => {
@@ -130,14 +127,20 @@ export default function Home() {
           const numMensajes = convs.status === 'fulfilled' && Array.isArray(convs.value)
             ? convs.value.reduce((acc: number, c: any) => acc + (c.noLeidos ?? 0), 0) : 0
           setSolicitudesPendientes(numSols)
-          setNotifNoLeidas(numSols + numNotifs + numMensajes)
-          setMensajesNoLeidos(numMensajes)
-        } catch { /* silencioso */ }
+          // Campana = solo solicitudes + notificaciones del servidor (NO mensajes — esos van en el BottomNav)
+          setNotifNoLeidas(numSols + numNotifs)
+          setMensajesNoLeidos(numMensajes)} catch { /* silencioso */ }
       }
       cargarBadge()
       // Polling cada 30s para mantener el badge actualizado
       const interval = setInterval(cargarBadge, 30000)
-      return () => clearInterval(interval)
+      // Recalcular cuando el usuario vuelve al tab (ej: después de ver notificaciones)
+      const handleFocus = () => cargarBadge()
+      document.addEventListener('visibilitychange', handleFocus)
+      return () => {
+        clearInterval(interval)
+        document.removeEventListener('visibilitychange', handleFocus)
+      }
     }
   }, [userId])
 
@@ -164,11 +167,12 @@ export default function Home() {
   }
 
   const eventosFiltrados = (() => {
-    // Filtrar eventos privados que no son míos
+    // Filtrar eventos privados: mostrar solo los propios o donde el usuario fue invitado
     const visibles = eventos.filter(ev => {
       const esPrivado = ev.accessibility === 'privado'
+      if (!esPrivado) return true
       const esMio = String(ev.creator_id ?? ev.created_by ?? ev.user_id ?? ev.users?.id ?? '') === String(userId ?? '')
-      return !esPrivado || esMio
+      return esMio || ev.is_invited === true
     })
 
     if (categoriaActiva === 'amigos') {

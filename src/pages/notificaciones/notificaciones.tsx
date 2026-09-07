@@ -95,10 +95,18 @@ export default function Notificaciones() {
           obtenerNotificaciones(),
         ])
         if (sols.status === 'fulfilled') setSolicitudes(Array.isArray(sols.value) ? sols.value : [])
-        if (notifs.status === 'fulfilled') setNotificaciones(Array.isArray(notifs.value) ? notifs.value : [])
 
-        // Debug
-        console.log('[Notificaciones]', notifs.status === 'fulfilled' ? notifs.value : notifs.reason)
+        if (notifs.status === 'fulfilled') {
+          const lista: Notificacion[] = Array.isArray(notifs.value) ? notifs.value : []
+          setNotificaciones(lista)
+
+          // Marcar todas las no leídas en el servidor (background)
+          const noLeidas = lista.filter(n => !n.read)
+          if (noLeidas.length > 0) {
+            Promise.allSettled(noLeidas.map(n => marcarNotificacionLeida(n.id)))
+              .then(() => setNotificaciones(prev => prev.map(n => ({ ...n, read: true }))))
+          }
+        }
       } finally {
         setCargando(false)
       }

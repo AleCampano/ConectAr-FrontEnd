@@ -95,8 +95,8 @@ body {
 
 .nav-btn-activo { color: var(--accent) !important; }
 
-.nav-btn-crear { color: var(--accent); }
-.nav-btn-crear svg { stroke: var(--accent); }
+.nav-btn-crear { color: var(--text-dim); }
+.nav-btn-crear svg { stroke: currentColor; }
 
 /* Badge de mensajes no leídos en BottomNav */
 .nav-badge {

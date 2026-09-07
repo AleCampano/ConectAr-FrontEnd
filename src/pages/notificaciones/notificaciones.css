@@ -212,6 +212,11 @@
 .notif-item-nueva {
   background: var(--accent-bg);
   cursor: pointer;
+  border-left: 3px solid var(--accent);
+}
+
+.notif-item-nueva .notif-item-texto {
+  font-weight: 600;
 }
 
 .notif-punto {

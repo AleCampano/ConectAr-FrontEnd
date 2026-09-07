@@ -3,4 +3,8 @@
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 8px;
+  /* Contener el z-index de Leaflet dentro de este elemento */
+  isolation: isolate;
+  position: relative;
+  z-index: 0;
 }

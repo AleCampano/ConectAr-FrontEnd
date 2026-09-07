@@ -6,33 +6,38 @@ export default function BottomNav() {
   const { pathname } = useLocation()
   const { mensajesNoLeidos } = useMensajes()
 
-  const enHome = pathname === '/home'
-
   return (
     <nav className="bottom-nav">
 
-      {/* Izquierda: Explorar si estás en Home, Home si estás en Explorar */}
-      {enHome ? (
-        <button className="nav-btn" onClick={() => navigate('/explorar')} aria-label="Explorar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <span>Explorar</span>
-        </button>
-      ) : (
-        <button className="nav-btn" onClick={() => navigate('/home')} aria-label="Home">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-          <span>Home</span>
-        </button>
-      )}
-
-      {/* Centro: Crear */}
+      {/* Home */}
       <button
-        className="nav-btn nav-btn-crear"
+        className={`nav-btn ${pathname === '/home' ? 'nav-btn-activo' : ''}`}
+        onClick={() => navigate('/home')}
+        aria-label="Home"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+        <span>Home</span>
+      </button>
+
+      {/* Explorar */}
+      <button
+        className={`nav-btn ${pathname === '/explorar' ? 'nav-btn-activo' : ''}`}
+        onClick={() => navigate('/explorar')}
+        aria-label="Explorar"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span>Explorar</span>
+      </button>
+
+      {/* Crear */}
+      <button
+        className={`nav-btn nav-btn-crear ${pathname === '/crear-evento' ? 'nav-btn-activo' : ''}`}
         onClick={() => navigate('/crear-evento')}
         aria-label="Crear evento"
       >
@@ -44,12 +49,11 @@ export default function BottomNav() {
         <span>Crear</span>
       </button>
 
-      {/* Derecha: Mensajes con badge */}
+      {/* Mensajes */}
       <button
         className={`nav-btn ${pathname.startsWith('/mensajes') ? 'nav-btn-activo' : ''}`}
         aria-label="Mensajes"
         onClick={() => navigate('/mensajes')}
-        style={{ position: 'relative' }}
       >
         <span style={{ position: 'relative', display: 'inline-flex' }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="24" height="24">
