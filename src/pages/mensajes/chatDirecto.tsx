@@ -7,9 +7,12 @@ import {
   MensajeDireto,
 } from '../../services/mensajesDirectos'
 import { obtenerAmigos } from '../../services/friendships'
+import { obtenerEvento, unirseEvento } from '../../services/eventos'
+import EventoPopup from '../../components/EventoPopup/EventoPopup'
 import './chatDirecto.css'
 
 const POLL_INTERVAL = 4000
+const INVITE_RE = /\bID:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\b/i
 
 function Avatar({ url, nombre, size = 36 }: { url: string | null; nombre: string; size?: number }) {
   const iniciales = (nombre || '?').split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
@@ -41,6 +44,9 @@ export default function ChatDirecto() {
   const [enviando, setEnviando] = useState(false)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [eventoPopup, setEventoPopup] = useState<any | null>(null)
+  // cache de eventos ya cargados para no re-fetchear en cada render
+  const eventosCache = useRef<Record<string, any>>({})
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -136,6 +142,67 @@ export default function ChatDirecto() {
 
   const nombre = otroUsuario?.full_name ?? otroUsuario?.username ?? 'Usuario'
 
+  // ── Componente interno: tarjeta de invitación ──
+  function TarjetaInvitacion({ eventId }: { eventId: string }) {
+    const [evento, setEvento] = useState<any | null>(eventosCache.current[eventId] ?? null)
+    const [uniendose, setUniendose] = useState(false)
+    const [unido, setUnido] = useState(false)
+
+    useEffect(() => {
+      if (eventosCache.current[eventId]) { setEvento(eventosCache.current[eventId]); return }
+      obtenerEvento(eventId)
+        .then(ev => { eventosCache.current[eventId] = ev; setEvento(ev) })
+        .catch(() => {})
+    }, [eventId])
+
+    async function handleUnirse() {
+      setUniendose(true)
+      try {
+        await unirseEvento(eventId)
+        setUnido(true)
+        // Refrescar el evento para mostrar datos actualizados en el popup
+        const ev = await obtenerEvento(eventId).catch(() => evento)
+        eventosCache.current[eventId] = ev
+        setEvento(ev)
+      } catch {
+        // si ya estaba unido o falló, igual abrimos el popup
+      } finally {
+        setUniendose(false)
+      }
+    }
+
+    if (!evento) return null
+
+    const esMio = String(evento.creator_id ?? '') === String(localStorage.getItem('user_id') ?? '')
+
+    return (
+      <div className="cd-invitacion-card">
+        <div className="cd-invitacion-header">
+          <span className="cd-invitacion-icono">🔒</span>
+          <p className="cd-invitacion-titulo">{evento.title}</p>
+        </div>
+        {evento.location && (
+          <p className="cd-invitacion-sub">📍 {evento.location.split(',')[0]}</p>
+        )}
+        {evento.event_date && (
+          <p className="cd-invitacion-sub">
+            📅 {new Date(evento.event_date).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
+          </p>
+        )}
+        <button
+          className="cd-invitacion-btn"
+          onClick={async () => {
+            if (!unido && !esMio) await handleUnirse()
+            setEventoPopup(eventosCache.current[eventId] ?? evento)
+          }}
+          disabled={uniendose}
+        >
+          {uniendose ? 'Uniéndote...' : esMio ? 'Ver evento' : unido ? 'Ver evento ✓' : 'Unirme y ver evento'}
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="cd-wrapper">
 
@@ -198,7 +265,10 @@ export default function ChatDirecto() {
                   {!esMio && (
                     <span className="cd-sender-nombre">{senderNombre}</span>
                   )}
-                  <p className="cd-content">{msg.content}</p>
+                  <p className="cd-content">{msg.content.replace(INVITE_RE, '').trim()}</p>
+                  {INVITE_RE.test(msg.content) && (
+                    <TarjetaInvitacion eventId={INVITE_RE.exec(msg.content)![1]} />
+                  )}
                   <div className="cd-burbuja-footer">
                     <span className="cd-hora">{formatHora(msg.created_at)}</span>
                     {esMio && (
@@ -237,6 +307,11 @@ export default function ChatDirecto() {
           </svg>
         </button>
       </div>
+
+      {/* Popup evento desde invitación */}
+      {eventoPopup && (
+        <EventoPopup evento={eventoPopup} onClose={() => setEventoPopup(null)} />
+      )}
 
     </div>
   )

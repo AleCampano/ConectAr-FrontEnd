@@ -281,3 +281,65 @@
 .cd-burbuja:not(.mia) .cd-leido {
   color: var(--text-dim);
 }
+
+/* ── Tarjeta de invitación a evento privado ── */
+.cd-invitacion-card {
+  background: var(--bg-card2);
+  border: 1.5px solid var(--accent);
+  border-radius: 14px;
+  padding: 12px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  max-width: 100%;
+}
+
+.cd-invitacion-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cd-invitacion-icono {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.cd-invitacion-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cd-invitacion-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.cd-invitacion-btn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.15s;
+}
+
+.cd-invitacion-btn:hover {
+  opacity: 0.85;
+}
+
+.cd-invitacion-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

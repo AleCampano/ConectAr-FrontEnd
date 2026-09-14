@@ -4,7 +4,10 @@ export async function listarEventos(type?: string) {
   const url = type
     ? `${BASE_URL}/events?type=${encodeURIComponent(type)}`
     : `${BASE_URL}/events`
-  const res = await fetch(url)
+  const token = localStorage.getItem('access_token')
+  const res = await fetch(url, {
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  })
   if (!res.ok) throw new Error('Error al obtener eventos')
   return res.json()
 }

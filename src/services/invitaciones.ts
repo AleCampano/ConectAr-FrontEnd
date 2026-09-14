@@ -46,3 +46,13 @@ export async function obtenerInvitaciones(eventId: string): Promise<Invitacion[]
   const data = await res.json()
   return Array.isArray(data) ? data : []
 }
+
+/** Obtiene todas las invitaciones recibidas por el usuario autenticado */
+export async function listarMisInvitaciones(): Promise<Invitacion[]> {
+  const res = await fetch(`${BASE_URL}/invitations/my`, {
+    headers: authHeaders(),
+  })
+  if (!res.ok) throw new Error('Error al obtener mis invitaciones')
+  const data = await res.json()
+  return Array.isArray(data) ? data : []
+}

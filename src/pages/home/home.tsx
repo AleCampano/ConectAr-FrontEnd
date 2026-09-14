@@ -36,6 +36,8 @@ export default function Home() {
   useEffect(() => {
     async function cargarEventos() {
       try {
+        // El backend ya devuelve los eventos privados del usuario con is_invited=true
+        // cuando se manda el token (GET /events con Authorization header)
         const data = await listarEventos()
         setEventos(data)
 

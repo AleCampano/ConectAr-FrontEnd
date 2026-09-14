@@ -146,7 +146,7 @@ export default function CrearEvento() {
     setEnviandoInvites(true)
     const titulo = eventoCreado.title ?? form.titulo
     const eventId = String(eventoCreado.id)
-    const mensaje = `¡Te invito a mi evento privado "${titulo}"! Buscalo en la app para unirte. 🎉`
+    const mensaje = `¡Te invito a mi evento privado "${titulo}"! ID:${eventId} 🎉`
 
     // Invitar por el sistema de invitaciones Y mandar mensaje directo en paralelo
     await Promise.allSettled(

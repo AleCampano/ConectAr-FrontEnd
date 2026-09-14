@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listarEventos, borrarEvento, unirseEvento, abandonarEvento, listarPersonas, buscarPersonas, likeEvento, unlikeEvento, obtenerLikes } from '../../services/eventos'
 import { enviarSolicitud } from '../../services/friendships'
+import { listarMisInvitaciones } from '../../services/invitaciones'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import ChatEvento from '../chatEvento/chatEvento'
 import './explorar.css'
@@ -41,12 +42,29 @@ export default function Explorar() {
     async function cargarEventos() {
       try {
         setCargandoEventos(true)
-        const listaEventos = await listarEventos()
-        setEventos(listaEventos)
+
+        // Cargar eventos e invitaciones propias en paralelo
+        const [listaEventos, misInvitaciones] = await Promise.all([
+          listarEventos(),
+          localStorage.getItem('access_token')
+            ? listarMisInvitaciones().catch(() => [])
+            : Promise.resolve([]),
+        ])
+
+        // Marcar is_invited en cada evento del lado del cliente (fallback)
+        const eventosInvitados = new Set(
+          (misInvitaciones as any[]).map((inv: any) => String(inv.event_id ?? inv.evento_id ?? ''))
+        )
+        const listaEnriquecida = listaEventos.map((ev: any) => ({
+          ...ev,
+          is_invited: ev.is_invited === true || eventosInvitados.has(String(ev.id)),
+        }))
+
+        setEventos(listaEnriquecida)
 
         // Revisamos a qué eventos ya está unido el usuario
         const unidos: string[] = []
-        for (const ev of listaEventos) {
+        for (const ev of listaEnriquecida) {
           try {
             const participantes = await listarPersonas(ev.id)
             const yaUnido = participantes.some(
@@ -61,12 +79,12 @@ export default function Explorar() {
 
         // Cargar likes de cada evento en paralelo
         const likesResultados = await Promise.allSettled(
-          listaEventos.map((ev: any) => obtenerLikes(String(ev.id)))
+          listaEnriquecida.map((ev: any) => obtenerLikes(String(ev.id)))
         )
         const nuevoLikesMap: Record<string, number> = {}
         const nuevosLikedEventos: string[] = []
         likesResultados.forEach((res, i) => {
-          const evId = String(listaEventos[i].id)
+          const evId = String(listaEnriquecida[i].id)
           if (res.status === 'fulfilled') {
             const likes: any[] = Array.isArray(res.value) ? res.value : (res.value?.likes ?? [])
             nuevoLikesMap[evId] = likes.length
@@ -111,6 +129,13 @@ export default function Explorar() {
 
   // Filtrado local de eventos en base a lo que se escribe y la categoría elegida
   const eventosFiltrados = eventos.filter(ev => {
+    // Ocultar eventos privados a los que el usuario no fue invitado ni creó
+    const esPrivado = ev.accessibility === 'privado'
+    if (esPrivado) {
+      const esMio = String(ev.creator_id ?? ev.created_by ?? ev.user_id ?? '') === String(userId ?? '')
+      if (!esMio && !ev.is_invited) return false
+    }
+
     const coincideTendencia = !tendencia || ev.event_type === tendencia
     const coincideBusqueda = !busqueda ||
       ev.title?.toLowerCase().includes(busqueda.toLowerCase()) ||
