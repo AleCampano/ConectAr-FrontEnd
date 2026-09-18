@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { listarEventos, likeEvento, unlikeEvento, obtenerLikes, listarPersonas } from '../../services/eventos'
 import { obtenerSolicitudes, obtenerAmigos, obtenerNotificaciones } from '../../services/friendships'
 import { listarConversaciones } from '../../services/mensajesDirectos'
+import { listarMisInvitaciones } from '../../services/invitaciones'
 import { useMensajes } from '../../context/MensajesContext'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import EventoPopup from '../../components/EventoPopup/EventoPopup'
@@ -39,18 +40,42 @@ export default function Home() {
         // El backend ya devuelve los eventos privados del usuario con is_invited=true
         // cuando se manda el token (GET /events con Authorization header)
         const data = await listarEventos()
-        setEventos(data)
+
+        // Inyectar eventos privados de invitaciones pendientes que el backend
+        // no haya incluido en el listado principal (is_invited puede no estar presente)
+        let eventosFinales = [...data]
+        if (localStorage.getItem('access_token')) {
+          try {
+            const invitaciones = await listarMisInvitaciones()
+            const pendientes = invitaciones.filter(inv => inv.status === 'pending')
+            const idsExistentes = new Set(data.map((ev: any) => String(ev.id)))
+
+            // El backend incluye el evento embebido en cada invitación — no hace falta
+            // un fetch extra a /events/:id
+            for (const inv of pendientes) {
+              const evEmbebido = (inv as any).event ?? null
+              if (evEmbebido && !idsExistentes.has(String(evEmbebido.id ?? inv.event_id))) {
+                eventosFinales.push({ ...evEmbebido, is_invited: true })
+                idsExistentes.add(String(evEmbebido.id ?? inv.event_id))
+              }
+            }
+          } catch {
+            // silencioso — no bloquear la carga principal
+          }
+        }
+
+        setEventos(eventosFinales)
 
         // Cargar likes de cada evento en paralelo
         const resultados = await Promise.allSettled(
-          data.map((ev: any) => obtenerLikes(String(ev.id)))
+          eventosFinales.map((ev: any) => obtenerLikes(String(ev.id)))
         )
 
         const nuevoLikesMap: Record<string, number> = {}
         const nuevosLikedEventos: string[] = []
 
         resultados.forEach((res, i) => {
-          const evId = String(data[i].id)
+          const evId = String(eventosFinales[i].id)
           if (res.status === 'fulfilled') {
             const likes: any[] = Array.isArray(res.value) ? res.value : (res.value?.likes ?? [])
             nuevoLikesMap[evId] = likes.length
@@ -74,13 +99,13 @@ export default function Home() {
 
             // Traer participantes de cada evento en paralelo
             const participantesResultados = await Promise.allSettled(
-              data.map((ev: any) => listarPersonas(String(ev.id)))
+              eventosFinales.map((ev: any) => listarPersonas(String(ev.id)))
             )
 
             const nuevoAmigosLikeMap: Record<string, any[]> = {}
 
             participantesResultados.forEach((res, i) => {
-              const evId = String(data[i].id)
+              const evId = String(eventosFinales[i].id)
               if (res.status === 'fulfilled') {
                 const participantes: any[] = Array.isArray(res.value) ? res.value : []
                 nuevoAmigosLikeMap[evId] = participantes
@@ -114,23 +139,26 @@ export default function Home() {
     }
     cargarEventos()
 
-    // Badge: solicitudes + notificaciones no leídas
+    // Badge: solicitudes + notificaciones no leídas + invitaciones pendientes
     if (localStorage.getItem('access_token')) {
       async function cargarBadge() {
         try {
-          const [sols, notifs, convs] = await Promise.allSettled([
+          const [sols, notifs, convs, invits] = await Promise.allSettled([
             obtenerSolicitudes(),
             obtenerNotificaciones(),
             listarConversaciones(),
+            listarMisInvitaciones(),
           ])
           const numSols = sols.status === 'fulfilled' && Array.isArray(sols.value) ? sols.value.length : 0
           const numNotifs = notifs.status === 'fulfilled' && Array.isArray(notifs.value)
             ? notifs.value.filter((n: any) => !n.read).length : 0
           const numMensajes = convs.status === 'fulfilled' && Array.isArray(convs.value)
             ? convs.value.reduce((acc: number, c: any) => acc + (c.noLeidos ?? 0), 0) : 0
+          const numInvits = invits.status === 'fulfilled' && Array.isArray(invits.value)
+            ? invits.value.filter((inv: any) => inv.status === 'pending').length : 0
           setSolicitudesPendientes(numSols)
-          // Campana = solo solicitudes + notificaciones del servidor (NO mensajes — esos van en el BottomNav)
-          setNotifNoLeidas(numSols + numNotifs)
+          // Campana = solicitudes + notificaciones del servidor + invitaciones pendientes (NO mensajes)
+          setNotifNoLeidas(numSols + numNotifs + numInvits)
           setMensajesNoLeidos(numMensajes)} catch { /* silencioso */ }
       }
       cargarBadge()

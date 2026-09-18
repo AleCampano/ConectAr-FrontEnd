@@ -7,7 +7,15 @@ import {
   rechazarSolicitud,
   marcarNotificacionLeida,
 } from '../../services/friendships'
+import {
+  listarMisInvitaciones,
+  aceptarInvitacion,
+  rechazarInvitacion,
+  type Invitacion,
+} from '../../services/invitaciones'
+import { obtenerEvento } from '../../services/eventos'
 import BottomNav from '../../components/BottomNav/BottomNav'
+import EventoPopup from '../../components/EventoPopup/EventoPopup'
 import './notificaciones.css'
 
 type Solicitud = {
@@ -24,22 +32,25 @@ type Solicitud = {
 
 type Notificacion = {
   id: string
-  type: 'friend_request' | 'friend_request_accepted' | 'like' | 'join' | 'comment' | 'new_message' | string
+  type: 'friend_request' | 'friend_request_accepted' | 'like' | 'join' | 'comment' | 'new_message' | 'event_invitation' | string
   read: boolean
   created_at: string
   actor: {
-    id?: string  // el backend aún no lo devuelve
+    id?: string
     full_name: string
     username: string
     avatar_url: string | null
   } | null
   event: { id: string; title: string } | null
+  // Para invitaciones: el backend puede incluir el evento embebido
+  invitation_id?: string
 }
 
 // Item unificado para la lista
 type Item =
-  | { kind: 'solicitud'; data: Solicitud; fecha: Date }
-  | { kind: 'notif';     data: Notificacion; fecha: Date }
+  | { kind: 'solicitud';   data: Solicitud;   fecha: Date }
+  | { kind: 'notif';       data: Notificacion; fecha: Date }
+  | { kind: 'invitacion';  data: Invitacion;   fecha: Date; evento: any | null }
 
 function tiempoRelativo(fecha: string) {
   const diff = Date.now() - new Date(fecha).getTime()
@@ -65,6 +76,7 @@ function iconoTipo(type: string) {
   if (type === 'join') return '🎉'
   if (type === 'comment') return '💬'
   if (type === 'friend_request' || type === 'friend_request_accepted') return '👤'
+  if (type === 'event_invitation') return '🔒'
   return '🔔'
 }
 
@@ -76,24 +88,46 @@ function textoNotif(n: Notificacion) {
   if (n.type === 'comment') return `${nombre} comentó en tu evento "${n.event?.title ?? ''}"`
   if (n.type === 'friend_request') return `${nombre} te envió una solicitud de amistad`
   if (n.type === 'friend_request_accepted') return `${nombre} aceptó tu solicitud de amistad`
+  if (n.type === 'event_invitation') return `${nombre} te invitó al evento "${n.event?.title ?? ''}"`
   return `Nueva notificación de ${nombre}`
+}
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  deporte:   '⚽',
+  concierto: '🎵',
+  cultura:   '🎭',
+  fiesta:    '🌙',
+  otro:      '✨',
+}
+
+function formatFechaCorta(fechaStr: string) {
+  if (!fechaStr) return ''
+  const d = new Date(fechaStr)
+  return d.toLocaleString('es-AR', {
+    day: 'numeric', month: 'short',
+    hour: '2-digit', minute: '2-digit',
+  })
 }
 
 export default function Notificaciones() {
   const navigate = useNavigate()
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([])
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([])
+  const [invitaciones, setInvitaciones] = useState<Array<{ inv: Invitacion; evento: any | null }>>([])
   const [cargando, setCargando] = useState(true)
   const [procesando, setProcesando] = useState<string[]>([])
+  const [eventoPopup, setEventoPopup] = useState<any | null>(null)
 
   useEffect(() => {
     async function cargar() {
       setCargando(true)
       try {
-        const [sols, notifs] = await Promise.allSettled([
+        const [sols, notifs, invits] = await Promise.allSettled([
           obtenerSolicitudes(),
           obtenerNotificaciones(),
+          listarMisInvitaciones(),
         ])
+
         if (sols.status === 'fulfilled') setSolicitudes(Array.isArray(sols.value) ? sols.value : [])
 
         if (notifs.status === 'fulfilled') {
@@ -106,6 +140,19 @@ export default function Notificaciones() {
             Promise.allSettled(noLeidas.map(n => marcarNotificacionLeida(n.id)))
               .then(() => setNotificaciones(prev => prev.map(n => ({ ...n, read: true }))))
           }
+        }
+
+        // Cargar invitaciones pendientes — el backend ya incluye el evento embebido
+        if (invits.status === 'fulfilled') {
+          const pendientes = (Array.isArray(invits.value) ? invits.value : [])
+            .filter((inv: Invitacion) => inv.status === 'pending')
+
+          const resultado = pendientes.map((inv: Invitacion) => ({
+            inv,
+            // El backend devuelve { ...invitacion, event: { id, title, event_date, location, image_url } }
+            evento: (inv as any).event ?? null,
+          }))
+          setInvitaciones(resultado)
         }
       } finally {
         setCargando(false)
@@ -138,6 +185,30 @@ export default function Notificaciones() {
     }
   }
 
+  async function handleAceptarInvitacion(invId: string) {
+    setProcesando(prev => [...prev, invId])
+    try {
+      await aceptarInvitacion(invId)
+      setInvitaciones(prev => prev.filter(i => i.inv.id !== invId))
+    } catch {
+      // silencioso
+    } finally {
+      setProcesando(prev => prev.filter(id => id !== invId))
+    }
+  }
+
+  async function handleRechazarInvitacion(invId: string) {
+    setProcesando(prev => [...prev, invId])
+    try {
+      await rechazarInvitacion(invId)
+      setInvitaciones(prev => prev.filter(i => i.inv.id !== invId))
+    } catch {
+      // silencioso
+    } finally {
+      setProcesando(prev => prev.filter(id => id !== invId))
+    }
+  }
+
   async function handleMarcarLeida(id: string) {
     try {
       await marcarNotificacionLeida(id)
@@ -148,7 +219,19 @@ export default function Notificaciones() {
   }
 
   async function handleClickNotif(n: Notificacion) {
-    // Si es mensaje, marcar como leídas todas las notificaciones de ese actor
+    // Si es invitación de evento vía notificación del servidor
+    if (n.type === 'event_invitation') {
+      if (!n.read) await handleMarcarLeida(n.id)
+      // Si la notificación trae invitation_id, intentamos abrirla
+      if (n.event?.id) {
+        try {
+          const ev = await obtenerEvento(n.event.id)
+          setEventoPopup(ev)
+        } catch { /* silencioso */ }
+      }
+      return
+    }
+    // Si es mensaje
     if ((n.type === 'message' || n.type === 'new_message') && n.actor?.id) {
       const delMismoActor = notificaciones.filter(
         x => (x.type === 'message' || x.type === 'new_message') && x.actor?.id === n.actor?.id && !x.read
@@ -164,12 +247,10 @@ export default function Notificaciones() {
     }
   }
 
-  // Mezclar solicitudes y notificaciones en una sola lista ordenada por fecha
-  // Las notificaciones de mensaje se agrupan por actor — solo aparece la más reciente de cada conversación
+  // Mezclar solicitudes, invitaciones y notificaciones en una sola lista ordenada por fecha
   const notificacionesAgrupadas = (() => {
     const vistas = new Set<string>()
     const resultado: Notificacion[] = []
-    // Ordenar por fecha desc primero para quedarnos con la más reciente de cada actor
     const ordenadas = [...notificaciones].sort((a, b) =>
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
@@ -189,8 +270,15 @@ export default function Notificaciones() {
       data: s,
       fecha: new Date(s.created_at),
     })),
+    // Invitaciones pendientes (de /invitations/my, independiente del sistema de notifs)
+    ...invitaciones.map(({ inv, evento }) => ({
+      kind: 'invitacion' as const,
+      data: inv,
+      fecha: new Date(inv.created_at),
+      evento,
+    })),
     ...notificacionesAgrupadas
-      .filter(n => n.type !== 'friend_request') // las solicitudes vienen del otro endpoint
+      .filter(n => n.type !== 'friend_request' && n.type !== 'event_invitation') // las de invitación ya vienen de /invitations/my
       .map(n => ({
         kind: 'notif' as const,
         data: n,
@@ -199,6 +287,7 @@ export default function Notificaciones() {
   ].sort((a, b) => b.fecha.getTime() - a.fecha.getTime())
 
   const noLeidas = notificaciones.filter(n => !n.read && n.type !== 'friend_request' && n.type !== 'friend_request_accepted').length
+  const totalPendientes = noLeidas + invitaciones.length
 
   return (
     <div className="notif-wrapper">
@@ -211,7 +300,7 @@ export default function Notificaciones() {
           </svg>
         </button>
         <h1 className="notif-titulo">Notificaciones</h1>
-        {noLeidas > 0 && <span className="notif-badge-header">{noLeidas}</span>}
+        {totalPendientes > 0 && <span className="notif-badge-header">{totalPendientes}</span>}
       </header>
 
       <div className="notif-scroll">
@@ -261,12 +350,89 @@ export default function Notificaciones() {
               )
             }
 
-            /* ── Notificación (like, mensaje, etc.) ── */
+            /* ── Invitación a evento privado ── */
+            if (item.kind === 'invitacion') {
+              const inv = item.data
+              const ev = item.evento
+              const ocupado = procesando.includes(inv.id)
+              const emoji = ev ? (CATEGORY_EMOJI[ev.event_type] ?? '✨') : '🔒'
+              const invitadoPor = inv.user?.full_name ?? inv.user?.username ?? 'Alguien'
+
+              return (
+                <div key={`inv-${inv.id}`} className="notif-item notif-item-nueva notif-item-invitacion">
+                  {/* Ícono del evento o placeholder */}
+                  <div className="notif-item-avatar">
+                    {ev?.image_url
+                      ? <img src={ev.image_url} alt={ev.title} className="notif-avatar-img notif-avatar-evento" />
+                      : <div className="notif-avatar-ph notif-avatar-evento-ph">{emoji}</div>
+                    }
+                    <span className="notif-tipo-badge">🔒</span>
+                  </div>
+
+                  <div className="notif-item-info">
+                    <p className="notif-item-texto">
+                      <strong>{invitadoPor}</strong> te invitó al evento privado
+                    </p>
+
+                    {/* Card del evento */}
+                    {ev ? (
+                      <button
+                        className="notif-invitacion-card"
+                        onClick={() => setEventoPopup(ev)}
+                        aria-label={`Ver evento ${ev.title}`}
+                      >
+                        <div className="notif-invitacion-card-emoji">{emoji}</div>
+                        <div className="notif-invitacion-card-info">
+                          <span className="notif-invitacion-card-titulo">{ev.title}</span>
+                          {ev.event_date && (
+                            <span className="notif-invitacion-card-fecha">
+                              📅 {formatFechaCorta(ev.event_date)}
+                            </span>
+                          )}
+                          {ev.location && (
+                            <span className="notif-invitacion-card-lugar">
+                              📍 {ev.location.split(',')[0]}
+                            </span>
+                          )}
+                        </div>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" className="notif-invitacion-chevron">
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </button>
+                    ) : (
+                      <span className="notif-invitacion-sin-info">Evento privado</span>
+                    )}
+
+                    <span className="notif-item-tiempo">{tiempoRelativo(inv.created_at)}</span>
+
+                    <div className="notif-item-acciones">
+                      <button
+                        className="notif-btn-aceptar"
+                        onClick={() => handleAceptarInvitacion(inv.id)}
+                        disabled={ocupado}
+                      >
+                        {ocupado ? '...' : 'Aceptar'}
+                      </button>
+                      <button
+                        className="notif-btn-rechazar"
+                        onClick={() => handleRechazarInvitacion(inv.id)}
+                        disabled={ocupado}
+                      >
+                        Rechazar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+
+            /* ── Notificación (like, mensaje, join, etc.) ── */
             const n = item.data
+            const esClickable = n.type === 'message' || n.type === 'new_message' || n.type === 'like' || n.type === 'event_invitation'
             return (
               <div
                 key={`notif-${n.id}-${i}`}
-                className={`notif-item ${!n.read ? 'notif-item-nueva' : ''} ${n.type === 'message' || n.type === 'like' ? 'notif-item-clickable' : ''}`}
+                className={`notif-item ${!n.read ? 'notif-item-nueva' : ''} ${esClickable ? 'notif-item-clickable' : ''}`}
                 onClick={() => handleClickNotif(n)}
               >
                 <div className="notif-item-avatar">
@@ -286,6 +452,14 @@ export default function Notificaciones() {
           })
         )}
       </div>
+
+      {/* Popup con info completa del evento */}
+      {eventoPopup && (
+        <EventoPopup
+          evento={eventoPopup}
+          onClose={() => setEventoPopup(null)}
+        />
+      )}
 
       <BottomNav />
     </div>

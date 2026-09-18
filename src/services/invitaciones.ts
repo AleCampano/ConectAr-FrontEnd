@@ -56,3 +56,33 @@ export async function listarMisInvitaciones(): Promise<Invitacion[]> {
   const data = await res.json()
   return Array.isArray(data) ? data : []
 }
+
+/** Acepta una invitación a un evento privado */
+export async function aceptarInvitacion(invitacionId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/invitations/${invitacionId}/accept`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+    },
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body?.error ?? body?.message ?? 'Error al aceptar invitación')
+  }
+}
+
+/** Rechaza una invitación a un evento privado */
+export async function rechazarInvitacion(invitacionId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/invitations/${invitacionId}/reject`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+    },
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body?.error ?? body?.message ?? 'Error al rechazar invitación')
+  }
+}
