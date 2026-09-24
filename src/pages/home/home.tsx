@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { listarEventos, likeEvento, unlikeEvento, obtenerLikes, listarPersonas } from '../../services/eventos'
+import { listarEventos, obtenerEvento, likeEvento, unlikeEvento, obtenerLikes, listarPersonas } from '../../services/eventos'
 import { obtenerSolicitudes, obtenerAmigos, obtenerNotificaciones } from '../../services/friendships'
 import { listarConversaciones } from '../../services/mensajesDirectos'
 import { listarMisInvitaciones } from '../../services/invitaciones'
@@ -50,13 +50,20 @@ export default function Home() {
             const pendientes = invitaciones.filter(inv => inv.status === 'pending')
             const idsExistentes = new Set(data.map((ev: any) => String(ev.id)))
 
-            // El backend incluye el evento embebido en cada invitación — no hace falta
-            // un fetch extra a /events/:id
             for (const inv of pendientes) {
+              const evId = String((inv as any).event?.id ?? inv.event_id ?? '')
+              if (!evId || idsExistentes.has(evId)) continue
+
+              // Si el backend embebe el evento, lo usamos directamente.
+              // Si no, hacemos fetch por ID (evento privado al que fuimos invitados).
               const evEmbebido = (inv as any).event ?? null
-              if (evEmbebido && !idsExistentes.has(String(evEmbebido.id ?? inv.event_id))) {
-                eventosFinales.push({ ...evEmbebido, is_invited: true })
-                idsExistentes.add(String(evEmbebido.id ?? inv.event_id))
+              const evData = evEmbebido
+                ? { ...evEmbebido, is_invited: true }
+                : await obtenerEvento(evId).then(ev => ({ ...ev, is_invited: true })).catch(() => null)
+
+              if (evData) {
+                eventosFinales.push(evData)
+                idsExistentes.add(evId)
               }
             }
           } catch {

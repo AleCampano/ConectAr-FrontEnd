@@ -27,12 +27,20 @@ export default function ResetPassword() {
     const token = params.get('access_token')
     const type = params.get('type')
 
-    if (!token || type !== 'recovery') {
+    // Supabase callback manda el token como query param
+    const searchParams = new URLSearchParams(window.location.search)
+    const tokenQuery = searchParams.get('access_token')
+    const typeQuery = searchParams.get('type')
+
+    const tokenFinal = token ?? tokenQuery
+    const typeFinal = type ?? typeQuery
+
+    if (!tokenFinal || typeFinal !== 'recovery') {
       setTokenInvalido(true)
       return
     }
-    setAccessToken(token)
-    // Limpiar el hash de la URL por seguridad
+    setAccessToken(tokenFinal)
+    // Limpiar la URL por seguridad
     window.history.replaceState(null, '', window.location.pathname)
   }, [])
 

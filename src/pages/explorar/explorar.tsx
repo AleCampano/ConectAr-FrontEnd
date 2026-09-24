@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { listarEventos, borrarEvento, unirseEvento, abandonarEvento, listarPersonas, buscarPersonas, likeEvento, unlikeEvento, obtenerLikes } from '../../services/eventos'
+import { listarEventos, obtenerEvento, borrarEvento, unirseEvento, abandonarEvento, listarPersonas, buscarPersonas, likeEvento, unlikeEvento, obtenerLikes } from '../../services/eventos'
 import { enviarSolicitud } from '../../services/friendships'
 import { listarMisInvitaciones } from '../../services/invitaciones'
 import BottomNav from '../../components/BottomNav/BottomNav'
@@ -59,6 +59,33 @@ export default function Explorar() {
           ...ev,
           is_invited: ev.is_invited === true || eventosInvitados.has(String(ev.id)),
         }))
+
+        // Inyectar eventos privados que NO aparecen en el listado principal
+        // (el backend omite eventos privados ajenos aunque el usuario tenga invitación)
+        if (localStorage.getItem('access_token')) {
+          const idsExistentes = new Set(listaEnriquecida.map((ev: any) => String(ev.id)))
+          const pendientes = (misInvitaciones as any[]).filter((inv: any) => inv.status === 'pending')
+
+          const fetchsFaltantes = pendientes
+            .filter((inv: any) => {
+              const evId = String((inv as any).event?.id ?? inv.event_id ?? '')
+              return evId && !idsExistentes.has(evId)
+            })
+            .map(async (inv: any) => {
+              const evId = String((inv as any).event?.id ?? inv.event_id ?? '')
+              const evEmbebido = (inv as any).event ?? null
+              return evEmbebido
+                ? { ...evEmbebido, is_invited: true }
+                : obtenerEvento(evId).then(ev => ({ ...ev, is_invited: true })).catch(() => null)
+            })
+
+          const resultadosFetch = await Promise.allSettled(fetchsFaltantes)
+          for (const r of resultadosFetch) {
+            if (r.status === 'fulfilled' && r.value) {
+              listaEnriquecida.push(r.value)
+            }
+          }
+        }
 
         setEventos(listaEnriquecida)
 

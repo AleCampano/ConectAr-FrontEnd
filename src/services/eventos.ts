@@ -13,7 +13,10 @@ export async function listarEventos(type?: string) {
 }
 
 export async function obtenerEvento(id: string) {
-  const res = await fetch(`${BASE_URL}/events/${id}`)
+  const token = localStorage.getItem('access_token')
+  const res = await fetch(`${BASE_URL}/events/${id}`, {
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  })
   if (!res.ok) throw new Error('Evento no encontrado')
   return res.json()
 }
