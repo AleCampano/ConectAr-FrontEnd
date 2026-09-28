@@ -7,6 +7,7 @@ import { listarMisInvitaciones } from '../../services/invitaciones'
 import { useMensajes } from '../../context/MensajesContext'
 import BottomNav from '../../components/BottomNav/BottomNav'
 import EventoPopup from '../../components/EventoPopup/EventoPopup'
+import CompartirSheet from '../../components/CompartirSheet/CompartirSheet'
 import Logo from '../../assets/Logo.png'
 import './home.css'
 
@@ -32,6 +33,7 @@ export default function Home() {
   const [notifNoLeidas, setNotifNoLeidas] = useState(0)
   const [amigosPopup, setAmigosPopup] = useState<any[] | null>(null)
   const [amigosLikeMap, setAmigosLikeMap] = useState<Record<string, any[]>>({})
+  const [compartirEventoId, setCompartirEventoId] = useState<string | null>(null)
   const userId = localStorage.getItem('user_id')
 
   useEffect(() => {
@@ -390,7 +392,7 @@ export default function Home() {
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                 </button>
-                <button className="accion-btn" aria-label="Compartir">
+                <button className="accion-btn" aria-label="Compartir" onClick={() => setCompartirEventoId(String(ev.id))}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="20" height="20">
                     <polyline points="15 17 20 12 15 7" />
                     <path d="M4 18v-2a4 4 0 0 1 4-4h12" strokeLinecap="round" />
@@ -431,6 +433,14 @@ export default function Home() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── Sheet compartir ── */}
+      {compartirEventoId && (
+        <CompartirSheet
+          eventoId={compartirEventoId}
+          onClose={() => setCompartirEventoId(null)}
+        />
       )}
 
       {/* ── Popup evento ── */}

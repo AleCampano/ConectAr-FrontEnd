@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { unirseEvento, abandonarEvento, listarPersonas } from '../../services/eventos'
 import { obtenerRating, obtenerMiRating, calificarEvento } from '../../services/ratings'
 import { listarMisInvitaciones } from '../../services/invitaciones'
+import CompartirSheet from '../CompartirSheet/CompartirSheet'
 import './EventoPopup.css'
 
 interface EventoPopupProps {
@@ -51,6 +52,9 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
   const [ratingError, setRatingError] = useState('')
   const [ratingMensaje, setRatingMensaje] = useState('')
   const [editandoRating, setEditandoRating] = useState(false)
+
+  // Compartir
+  const [mostrarCompartir, setMostrarCompartir] = useState(false)
 
   const userId = localStorage.getItem('user_id')
 
@@ -475,6 +479,18 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
               </div>
             )}
 
+            {/* ── Botón Compartir ── */}
+            {localStorage.getItem('access_token') && (
+              <button className="popup-btn-compartir" onClick={handleAbrirCompartir}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="16" height="16">
+                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                Compartir evento
+              </button>
+            )}
+
           </div>
         </div>
 
@@ -540,6 +556,15 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
         </div>
 
       </div>
+
+      {/* ── Sheet compartir ── */}
+      {mostrarCompartir && (
+        <CompartirSheet
+          eventoId={String(evento.id)}
+          onClose={() => setMostrarCompartir(false)}
+        />
+      )}
+
     </div>
   )
 }
