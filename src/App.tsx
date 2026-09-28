@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useNavigate, useParams } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
 import { MensajesProvider } from './context/MensajesContext'
 import Registrarse from './pages/registrarse/registrarse'
@@ -23,13 +23,28 @@ function ChatPage() {
   return <ChatEvento eventId={id} onCerrar={() => navigate(-1)} />
 }
 
+// Detecta si la URL raíz tiene un hash de recuperación de contraseña de Supabase
+// y redirige a /reset-password preservando el hash
+function RootRedirect() {
+  const hash = window.location.hash.substring(1)
+  const params = new URLSearchParams(hash)
+  const type = params.get('type')
+  const token = params.get('access_token')
+
+  if (token && type === 'recovery') {
+    return <Navigate to={`/reset-password${window.location.hash}`} replace />
+  }
+
+  return <Registrarse />
+}
+
 function App() {
   return (
     <ThemeProvider>
       <MensajesProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Registrarse />} />
+            <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<Login />} />
             <Route path="/home" element={<Home />} />
             <Route path="/perfil" element={<Perfil />} />

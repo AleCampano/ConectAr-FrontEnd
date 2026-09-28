@@ -62,7 +62,10 @@ export async function unirseEvento(eventId: string) {
     },
     body: JSON.stringify({ user_id: userId })
   })
-  if (!res.ok) throw new Error('Error al unirse al evento')
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body?.error ?? body?.message ?? body?.detail ?? 'Error al unirse al evento')
+  }
   return res.json()
 }
 

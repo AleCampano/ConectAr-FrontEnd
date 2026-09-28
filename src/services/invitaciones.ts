@@ -49,7 +49,7 @@ export async function obtenerInvitaciones(eventId: string): Promise<Invitacion[]
 
 /** Obtiene todas las invitaciones recibidas por el usuario autenticado */
 export async function listarMisInvitaciones(): Promise<Invitacion[]> {
-  const res = await fetch(`${BASE_URL}/invitations/my`, {
+  const res = await fetch(`${BASE_URL}/users/me/invitations`, {
     headers: authHeaders(),
   })
   if (!res.ok) throw new Error('Error al obtener mis invitaciones')
@@ -60,11 +60,8 @@ export async function listarMisInvitaciones(): Promise<Invitacion[]> {
 /** Acepta una invitación a un evento privado */
 export async function aceptarInvitacion(invitacionId: string): Promise<void> {
   const res = await fetch(`${BASE_URL}/invitations/${invitacionId}/accept`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders(),
-    },
+    method: 'PATCH',
+    headers: authHeaders(),
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
@@ -75,11 +72,8 @@ export async function aceptarInvitacion(invitacionId: string): Promise<void> {
 /** Rechaza una invitación a un evento privado */
 export async function rechazarInvitacion(invitacionId: string): Promise<void> {
   const res = await fetch(`${BASE_URL}/invitations/${invitacionId}/reject`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders(),
-    },
+    method: 'PATCH',
+    headers: authHeaders(),
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))

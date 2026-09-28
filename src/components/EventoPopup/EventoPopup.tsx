@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { unirseEvento, abandonarEvento, listarPersonas } from '../../services/eventos'
 import { obtenerRating, obtenerMiRating, calificarEvento } from '../../services/ratings'
+import { listarMisInvitaciones } from '../../services/invitaciones'
 import './EventoPopup.css'
 
 interface EventoPopupProps {
@@ -112,7 +113,32 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
     setUniendose(true)
     setError('')
     try {
-      await unirseEvento(String(evento.id))
+      const esPrivado = evento?.accessibility === 'privado'
+
+      if (esPrivado) {
+        // El creador del evento puede unirse sin invitación
+        const creatorId = String(evento.creator_id ?? evento.created_by ?? evento.user_id ?? '')
+        const esMio = creatorId && creatorId === String(userId ?? '')
+
+        if (!esMio) {
+          // Para eventos privados verificamos que el usuario tenga una invitación válida
+          const invitaciones = await listarMisInvitaciones()
+          const invitacion = invitaciones.find(
+            (inv: any) => String(inv.event_id ?? inv.event?.id ?? '') === String(evento.id)
+          )
+
+          if (!invitacion || invitacion.status === 'rejected') {
+            setError('Este evento es privado. Necesitás una invitación para unirte.')
+            return
+          }
+        }
+
+        // Con status 'pending' o 'accepted', o siendo el creador, el backend permite el join
+        await unirseEvento(String(evento.id))
+      } else {
+        await unirseEvento(String(evento.id))
+      }
+
       let nombre = 'Vos'
       let username = ''
       let avatar: string | null = null
@@ -120,9 +146,9 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
         const raw = localStorage.getItem('usuario')
         if (raw) {
           const u = JSON.parse(raw)
-          nombre  = u.full_name ?? u.username ?? 'Vos'
+          nombre   = u.full_name ?? u.username ?? 'Vos'
           username = u.username ?? ''
-          avatar  = u.avatar_url ?? null
+          avatar   = u.avatar_url ?? null
         }
       } catch { /* fallback */ }
       setParticipantes(prev => [
@@ -133,8 +159,8 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
         }
       ])
       setUnido(true)
-    } catch {
-      setError('No se pudo unir al evento. Intentá de nuevo.')
+    } catch (e: any) {
+      setError(e?.message ?? 'No se pudo unir al evento. Intentá de nuevo.')
     } finally {
       setUniendose(false)
     }
