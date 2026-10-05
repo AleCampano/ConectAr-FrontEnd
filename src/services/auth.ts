@@ -103,7 +103,13 @@ export async function obtenerPerfil(id: string) {
   return res.json()
 }
 
-export async function actualizarPerfil(id: string, datos: { avatar_url?: string; full_name?: string; username?: string }) {
+export async function actualizarPerfil(id: string, datos: {
+  avatar_url?: string
+  full_name?: string
+  username?: string
+  bio?: string
+  birth_date?: string
+}) {
   const token = localStorage.getItem('access_token')
   const res = await fetch(`${BASE_URL}/users/${id}`, {
     method: 'PUT',
@@ -113,7 +119,41 @@ export async function actualizarPerfil(id: string, datos: { avatar_url?: string;
     },
     body: JSON.stringify(datos)
   })
-  if (!res.ok) throw new Error('Error al actualizar perfil')
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body?.error ?? body?.message ?? 'Error al actualizar perfil')
+  }
+  return res.json()
+}
+
+export async function subirAvatar(archivo: File): Promise<{ avatar_url: string }> {
+  const token = localStorage.getItem('access_token')
+  const formData = new FormData()
+  formData.append('avatar', archivo)
+  const res = await fetch(`${BASE_URL}/users/me/avatar`, {
+    method: 'POST',
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: formData
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body?.error ?? body?.message ?? 'Error al subir avatar')
+  }
+  return res.json()
+}
+
+export async function obtenerLogros(userId: string): Promise<{
+  id: string
+  name: string
+  description: string
+  icon: string
+  condition_type: string
+  condition_value: number
+  unlocked: boolean
+  unlocked_at: string | null
+}[]> {
+  const res = await fetch(`${BASE_URL}/users/${userId}/achievements`)
+  if (!res.ok) throw new Error('Error al obtener logros')
   return res.json()
 }
 

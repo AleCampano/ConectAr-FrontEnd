@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header/Header'
 import Logro from '../../components/Logro/Logro'
-import { obtenerPerfil, actualizarPerfil } from '../../services/auth'
+import { obtenerPerfil, actualizarPerfil, subirAvatar, obtenerLogros } from '../../services/auth'
 import { obtenerEventosAsistidos, calificarEvento, obtenerMiRating } from '../../services/ratings'
 import { obtenerAmigos } from '../../services/friendships'
 import { listarMisEventos, obtenerParticipantesConEdad } from '../../services/eventos'
@@ -16,6 +16,21 @@ function Perfil() {
   const [mostrarConfirmLogout, setMostrarConfirmLogout] = useState(false)
   const [subiendoFoto, setSubiendoFoto] = useState(false)
   const { theme, toggleTheme } = useTheme()
+
+  // Modal editar perfil
+  const [mostrarEditarPerfil, setMostrarEditarPerfil] = useState(false)
+  const [editForm, setEditForm] = useState({ full_name: '', username: '', bio: '', birth_date: '' })
+  const [guardandoPerfil, setGuardandoPerfil] = useState(false)
+  const [errorEditPerfil, setErrorEditPerfil] = useState('')
+
+  // Logros
+  type Logro = {
+    id: string; name: string; description: string; icon: string
+    condition_type: string; condition_value: number
+    unlocked: boolean; unlocked_at: string | null
+  }
+  const [logros, setLogros] = useState<Logro[]>([])
+  const [cargandoLogros, setCargandoLogros] = useState(true)
 
   const [usuario, setUsuario] = useState({
     nombre: '',
@@ -74,8 +89,21 @@ function Perfil() {
             avatarUrl: data.avatar_url || ''
           }))
           localStorage.setItem('usuario', JSON.stringify({ ...usuarioGuardado, ...data }))
+          // Pre-cargar el form de edición con los datos reales del perfil
+          setEditForm({
+            full_name: data.full_name || usuarioGuardado.full_name || '',
+            username: data.username || usuarioGuardado.username || '',
+            bio: data.bio || '',
+            birth_date: data.birth_date ? data.birth_date.slice(0, 10) : ''
+          })
         })
         .catch(() => {})
+
+      // Cargar logros
+      obtenerLogros(userId)
+        .then(data => setLogros(data))
+        .catch(() => setLogros([]))
+        .finally(() => setCargandoLogros(false))
 
       // Cargar eventos asistidos para el gráfico
       obtenerEventosAsistidos(userId)
@@ -86,7 +114,8 @@ function Perfil() {
 
           for (let i = 11; i >= 0; i--) {
             const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1)
-            const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`
+            const _key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`
+            void _key
             const label = fecha.toLocaleString('es-AR', { month: 'short' })
             const count = eventos.filter((ev: any) => {
               const evFecha = new Date(ev.event_date)
@@ -140,14 +169,21 @@ function Perfil() {
     setSubiendoFoto(true)
 
     try {
-      // Redimensionar y comprimir a máximo 400x400 y calidad 0.7
+      // Preview inmediato con canvas comprimido
       const base64 = await comprimirImagen(archivo, 400, 0.7)
-
-      // Preview instantáneo
       setUsuario(prev => ({ ...prev, avatarUrl: base64 }))
 
-      const data = await actualizarPerfil(userId, { avatar_url: base64 })
-      const avatarFinal = data.avatar_url || base64
+      let avatarFinal: string
+      try {
+        // Intentar subir via multipart (endpoint nuevo)
+        const data = await subirAvatar(archivo)
+        avatarFinal = data.avatar_url
+      } catch {
+        // Fallback: enviar base64 via PUT
+        const data = await actualizarPerfil(userId, { avatar_url: base64 })
+        avatarFinal = data.avatar_url || base64
+      }
+
       setUsuario(prev => ({ ...prev, avatarUrl: avatarFinal }))
       const usuarioGuardado = JSON.parse(localStorage.getItem('usuario') || '{}')
       localStorage.setItem('usuario', JSON.stringify({ ...usuarioGuardado, avatar_url: avatarFinal }))
@@ -188,6 +224,35 @@ function Perfil() {
       reader.onerror = reject
       reader.readAsDataURL(archivo)
     })
+  }
+
+  async function handleGuardarPerfil() {
+    const userId = localStorage.getItem('user_id')
+    if (!userId) return
+    setGuardandoPerfil(true)
+    setErrorEditPerfil('')
+    try {
+      // Solo enviamos campos con valor
+      const payload: Record<string, string> = {}
+      if (editForm.full_name.trim()) payload.full_name = editForm.full_name.trim()
+      if (editForm.username.trim()) payload.username = editForm.username.trim()
+      if (editForm.bio.trim() !== undefined) payload.bio = editForm.bio.trim()
+      if (editForm.birth_date) payload.birth_date = editForm.birth_date
+
+      const data = await actualizarPerfil(userId, payload)
+      setUsuario(prev => ({
+        ...prev,
+        nombre: data.full_name || prev.nombre,
+        username: data.username || prev.username,
+      }))
+      const usuarioGuardado = JSON.parse(localStorage.getItem('usuario') || '{}')
+      localStorage.setItem('usuario', JSON.stringify({ ...usuarioGuardado, ...data }))
+      setMostrarEditarPerfil(false)
+    } catch (e: any) {
+      setErrorEditPerfil(e?.message ?? 'No se pudo guardar. Intentá de nuevo.')
+    } finally {
+      setGuardandoPerfil(false)
+    }
   }
 
   function cerrarSesion() {
@@ -306,6 +371,25 @@ function Perfil() {
 
         <p className="perfil-nombre">{usuario.nombre}</p>
         <p className="perfil-username">@{usuario.username}</p>
+        <button
+          className="perfil-editar-btn"
+          onClick={() => {
+            setEditForm({
+              full_name: usuario.nombre,
+              username: usuario.username,
+              bio: JSON.parse(localStorage.getItem('usuario') || '{}').bio || '',
+              birth_date: JSON.parse(localStorage.getItem('usuario') || '{}').birth_date?.slice(0, 10) || ''
+            })
+            setErrorEditPerfil('')
+            setMostrarEditarPerfil(true)
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          Editar perfil
+        </button>
       </div>
 
       {/* Stats */}
@@ -555,22 +639,100 @@ function Perfil() {
       {/* Logros */}
       <section>
         <h2>Logros</h2>
-        <Logro
-          icono="🏆"
-          titulo="Primer evento"
-          desc="Asististe a tu primer evento"
-        />
-        <Logro
-          icono="⭐"
-          titulo="Organizador"
-          desc="Creaste tu primer evento"
-        />
-         <Logro
-            icono="🤝"
-            titulo="Social Pro"
-            desc="Conecta con 50 personas"
-          />
-        </section>
+        {cargandoLogros ? (
+          <p className="vacio">Cargando logros…</p>
+        ) : logros.length === 0 ? (
+          <p className="vacio">No hay logros disponibles todavía.</p>
+        ) : (
+          logros.map(logro => (
+            <Logro
+              key={logro.id}
+              icono={logro.icon}
+              titulo={logro.name}
+              desc={logro.description}
+              desbloqueado={logro.unlocked}
+            />
+          ))
+        )}
+      </section>
+
+      {/* Modal editar perfil */}
+      {mostrarEditarPerfil && (
+        <div className="modal-overlay" onClick={() => setMostrarEditarPerfil(false)}>
+          <div className="modal modal-editar-perfil" onClick={e => e.stopPropagation()}>
+            <div className="modal-amigos-header">
+              <p className="modal-titulo">Editar perfil</p>
+              <button className="modal-amigos-close" onClick={() => setMostrarEditarPerfil(false)}>✕</button>
+            </div>
+            <div className="modal-editar-body">
+              <div className="ep-campo">
+                <label className="ep-label">Nombre completo</label>
+                <input
+                  className="ep-input"
+                  type="text"
+                  value={editForm.full_name}
+                  onChange={e => setEditForm(prev => ({ ...prev, full_name: e.target.value }))}
+                  placeholder="Tu nombre"
+                  maxLength={80}
+                />
+              </div>
+              <div className="ep-campo">
+                <label className="ep-label">Usuario</label>
+                <div className="ep-input-prefix-wrap">
+                  <span className="ep-prefix">@</span>
+                  <input
+                    className="ep-input ep-input-prefix"
+                    type="text"
+                    value={editForm.username}
+                    onChange={e => setEditForm(prev => ({ ...prev, username: e.target.value }))}
+                    placeholder="tu_usuario"
+                    maxLength={40}
+                  />
+                </div>
+              </div>
+              <div className="ep-campo">
+                <label className="ep-label">Bio</label>
+                <textarea
+                  className="ep-input ep-textarea"
+                  value={editForm.bio}
+                  onChange={e => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
+                  placeholder="Contá algo sobre vos…"
+                  maxLength={200}
+                  rows={3}
+                />
+                <span className="ep-char-count">{editForm.bio.length}/200</span>
+              </div>
+              <div className="ep-campo">
+                <label className="ep-label">Fecha de nacimiento</label>
+                <input
+                  className="ep-input"
+                  type="date"
+                  value={editForm.birth_date}
+                  onChange={e => setEditForm(prev => ({ ...prev, birth_date: e.target.value }))}
+                  max={new Date().toISOString().slice(0, 10)}
+                />
+              </div>
+              {errorEditPerfil && <p className="ep-error">{errorEditPerfil}</p>}
+              <div className="modal-acciones" style={{ marginTop: 8 }}>
+                <button
+                  className="modal-btn cancelar"
+                  onClick={() => setMostrarEditarPerfil(false)}
+                  disabled={guardandoPerfil}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="modal-btn confirmar"
+                  onClick={handleGuardarPerfil}
+                  disabled={guardandoPerfil}
+                >
+                  {guardandoPerfil ? 'Guardando…' : 'Guardar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal conexiones */}
       {mostrarAmigos && (

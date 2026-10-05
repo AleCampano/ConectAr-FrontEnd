@@ -1,5 +1,11 @@
 import { BASE_URL } from '../config/api'
 
+export async function obtenerShareEvento(eventId: string): Promise<{ url: string; title: string; description: string }> {
+  const res = await fetch(`${BASE_URL}/events/${eventId}/share`)
+  if (!res.ok) throw new Error('Error al obtener datos de compartir')
+  return res.json()
+}
+
 export async function listarEventos(type?: string) {
   const url = type
     ? `${BASE_URL}/events?type=${encodeURIComponent(type)}`

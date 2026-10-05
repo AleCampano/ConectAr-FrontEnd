@@ -55,6 +55,7 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
 
   // Compartir
   const [mostrarCompartir, setMostrarCompartir] = useState(false)
+  const handleAbrirCompartir = () => setMostrarCompartir(true)
 
   const userId = localStorage.getItem('user_id')
 
