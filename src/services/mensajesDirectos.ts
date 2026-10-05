@@ -40,7 +40,7 @@ interface ConversacionRaw {
 
 /** Lista todas las conversaciones del usuario autenticado */
 export async function listarConversaciones(): Promise<Conversacion[]> {
-  const res = await fetch(`${BASE_URL}/messages/`, {
+  const res = await fetch(`${BASE_URL}/messages`, {
     headers: { ...authHeaders() }
   })
   if (!res.ok) throw new Error('Error al obtener conversaciones')
@@ -63,7 +63,14 @@ export async function obtenerMensajesDirectos(otroUserId: string, limit = 50): P
   })
   if (!res.ok) throw new Error('Error al obtener mensajes')
   const data = await res.json()
-  return Array.isArray(data) ? data : []
+  if (!Array.isArray(data)) return []
+
+  const miId = localStorage.getItem('user_id') ?? ''
+  // El backend no devuelve is_mine — lo calculamos comparando sender_id
+  return data.map((msg: any) => ({
+    ...msg,
+    is_mine: String(msg.sender_id) === String(miId),
+  }))
 }
 
 /** Envía un mensaje directo a un usuario */
@@ -80,14 +87,26 @@ export async function enviarMensajeDirecto(receiverId: string, content: string):
     const body = await res.json().catch(() => ({}))
     throw new Error(body?.error ?? body?.message ?? 'Error al enviar mensaje')
   }
-  return res.json()
+  const msg = await res.json()
+  const miId = localStorage.getItem('user_id') ?? ''
+  // El response trae username/full_name/avatar_url en el root — normalizamos a la forma sender:{...}
+  return {
+    ...msg,
+    is_mine: String(msg.sender_id) === String(miId),
+    sender: msg.sender ?? {
+      id: msg.sender_id,
+      username: msg.username ?? '',
+      full_name: msg.full_name ?? '',
+      avatar_url: msg.avatar_url ?? null,
+    },
+  }
 }
 
-/** Marca todos los mensajes de una conversación como leídos */
-export async function marcarConversacionLeida(otroUserId: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/messages/${otroUserId}/read`, {
-    method: 'PATCH',
+/** Elimina un mensaje propio */
+export async function eliminarMensaje(messageId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/messages/${messageId}`, {
+    method: 'DELETE',
     headers: { ...authHeaders() }
   })
-  if (!res.ok) throw new Error('Error al marcar mensajes como leídos')
+  if (!res.ok) throw new Error('Error al eliminar mensaje')
 }

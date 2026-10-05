@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import {
   obtenerMensajesDirectos,
   enviarMensajeDirecto,
-  marcarConversacionLeida,
   MensajeDireto,
 } from '../../services/mensajesDirectos'
 import { obtenerAmigos } from '../../services/friendships'
@@ -68,7 +67,7 @@ export default function ChatDirecto() {
       })
       if (esInicial) {
         setTimeout(() => scrollAlFinal(false), 50)
-        marcarConversacionLeida(otroUserId).catch(() => {})
+        // El GET ya marca los mensajes como leídos automáticamente en el backend
       }
     } catch {
       if (esInicial) setError('No se pudo cargar la conversación.')

@@ -157,6 +157,28 @@ export async function obtenerLogros(userId: string): Promise<{
   return res.json()
 }
 
+export async function sincronizarLogros(userId: string): Promise<{
+  newly_unlocked: number
+  achievements: {
+    id: string
+    name: string
+    description: string
+    icon: string
+    condition_type: string
+    condition_value: number
+    unlocked: boolean
+    unlocked_at: string | null
+  }[]
+}> {
+  const token = localStorage.getItem('access_token')
+  const res = await fetch(`${BASE_URL}/users/${userId}/achievements/sync`, {
+    method: 'POST',
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  })
+  if (!res.ok) throw new Error('Error al sincronizar logros')
+  return res.json()
+}
+
 export async function olvidasteContrasena(email: string) {
   const res = await fetch(`${BASE_URL}/users/forgot-password`, {
     method: 'POST',

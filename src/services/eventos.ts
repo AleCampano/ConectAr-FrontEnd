@@ -59,14 +59,12 @@ export async function borrarEvento(id: string) {
 
 export async function unirseEvento(eventId: string) {
   const token = localStorage.getItem('access_token')
-  const userId = localStorage.getItem('user_id')
   const res = await fetch(`${BASE_URL}/events/${eventId}/join`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {})
-    },
-    body: JSON.stringify({ user_id: userId })
+    }
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
@@ -77,14 +75,12 @@ export async function unirseEvento(eventId: string) {
 
 export async function abandonarEvento(eventId: string) {
   const token = localStorage.getItem('access_token')
-  const userId = localStorage.getItem('user_id')
   const res = await fetch(`${BASE_URL}/events/${eventId}/join`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {})
-    },
-    body: JSON.stringify({ user_id: userId })
+    }
   })
   if (!res.ok) throw new Error('Error al abandonar el evento')
   return res.json()

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header/Header'
 import Logro from '../../components/Logro/Logro'
-import { obtenerPerfil, actualizarPerfil, subirAvatar, obtenerLogros } from '../../services/auth'
+import { obtenerPerfil, actualizarPerfil, subirAvatar, obtenerLogros, sincronizarLogros } from '../../services/auth'
 import { obtenerEventosAsistidos, calificarEvento, obtenerMiRating } from '../../services/ratings'
 import { obtenerAmigos } from '../../services/friendships'
 import { listarMisEventos, obtenerParticipantesConEdad } from '../../services/eventos'
@@ -99,10 +99,15 @@ function Perfil() {
         })
         .catch(() => {})
 
-      // Cargar logros
-      obtenerLogros(userId)
-        .then(data => setLogros(data))
-        .catch(() => setLogros([]))
+      // Sincronizar logros retroactivamente y luego cargar
+      sincronizarLogros(userId)
+        .then(res => setLogros(res.achievements))
+        .catch(() =>
+          // Si el sync falla (token expirado, etc.), igual cargamos los que hay
+          obtenerLogros(userId)
+            .then(data => setLogros(data))
+            .catch(() => {})
+        )
         .finally(() => setCargandoLogros(false))
 
       // Cargar eventos asistidos para el gráfico
@@ -187,6 +192,11 @@ function Perfil() {
       setUsuario(prev => ({ ...prev, avatarUrl: avatarFinal }))
       const usuarioGuardado = JSON.parse(localStorage.getItem('usuario') || '{}')
       localStorage.setItem('usuario', JSON.stringify({ ...usuarioGuardado, avatar_url: avatarFinal }))
+
+      // Refrescar logros — subir avatar puede desbloquear "Perfil completo"
+      obtenerLogros(userId)
+        .then(data => setLogros(data))
+        .catch(() => {})
     } catch {
       alert('No se pudo guardar la foto. Intentá de nuevo.')
       setUsuario(prev => ({ ...prev, avatarUrl: '' }))
@@ -229,6 +239,20 @@ function Perfil() {
   async function handleGuardarPerfil() {
     const userId = localStorage.getItem('user_id')
     if (!userId) return
+
+    // Validar mayoría de edad si se ingresó fecha
+    if (editForm.birth_date) {
+      const hoy = new Date()
+      const nac = new Date(editForm.birth_date)
+      let edad = hoy.getFullYear() - nac.getFullYear()
+      const m = hoy.getMonth() - nac.getMonth()
+      if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--
+      if (edad < 18) {
+        setErrorEditPerfil('Tenés que tener al menos 18 años.')
+        return
+      }
+    }
+
     setGuardandoPerfil(true)
     setErrorEditPerfil('')
     try {
@@ -248,6 +272,11 @@ function Perfil() {
       const usuarioGuardado = JSON.parse(localStorage.getItem('usuario') || '{}')
       localStorage.setItem('usuario', JSON.stringify({ ...usuarioGuardado, ...data }))
       setMostrarEditarPerfil(false)
+
+      // Refrescar logros — el backend los desbloquea automáticamente al guardar el perfil
+      obtenerLogros(userId)
+        .then(data => setLogros(data))
+        .catch(() => {})
     } catch (e: any) {
       setErrorEditPerfil(e?.message ?? 'No se pudo guardar. Intentá de nuevo.')
     } finally {
@@ -709,7 +738,7 @@ function Perfil() {
                   type="date"
                   value={editForm.birth_date}
                   onChange={e => setEditForm(prev => ({ ...prev, birth_date: e.target.value }))}
-                  max={new Date().toISOString().slice(0, 10)}
+                  max={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()).toISOString().slice(0, 10)}
                 />
               </div>
               {errorEditPerfil && <p className="ep-error">{errorEditPerfil}</p>}

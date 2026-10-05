@@ -4,7 +4,7 @@ import Header from '../../components/Header/Header'
 import Boton from '../../components/Boton/Boton'
 import MapaPicker from '../../components/MapaPicker/MapaPicker'
 import './crearEvento.css'
-import { crearEvento } from '../../services/eventos'
+import { crearEvento, unirseEvento } from '../../services/eventos'
 import { buscarDirecciones } from '../../ubicacionApi'
 import { obtenerAmigos } from '../../services/friendships'
 import { enviarMensajeDirecto } from '../../services/mensajesDirectos'
@@ -127,6 +127,12 @@ export default function CrearEvento() {
 
     try {
       const ev = await crearEvento(nuevoEvento)
+
+      // Unirse automáticamente como creador
+      await unirseEvento(String(ev.id)).catch(() => {
+        // silencioso — si el backend ya lo hace automáticamente, esto falla con "ya unido" y está bien
+      })
+
       if (form.acceso === 'privado') {
         // Abrir modal de invitación
         setEventoCreado(ev)
