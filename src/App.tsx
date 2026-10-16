@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate, useLocation } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
 import { MensajesProvider } from './context/MensajesContext'
 import Registrarse from './pages/registrarse/registrarse'
@@ -24,15 +24,23 @@ function ChatPage() {
 }
 
 // Detecta si la URL raíz tiene un hash de recuperación de contraseña de Supabase
-// y redirige a /reset-password preservando el hash
+// y redirige a /reset-password preservando el hash.
+// Usa useLocation() de React Router para garantizar que la URL esté completamente
+// parseada antes de leerla (window.location puede llegar vacío en algunos entornos).
 function RootRedirect() {
-  const hash = window.location.hash.substring(1)
-  const params = new URLSearchParams(hash)
-  const type = params.get('type')
-  const token = params.get('access_token')
+  const location = useLocation()
+
+  // El token puede venir en el hash (#access_token=...) o en query string (?access_token=...)
+  const hashParams = new URLSearchParams(location.hash.substring(1))
+  const searchParams = new URLSearchParams(location.search)
+
+  const token = hashParams.get('access_token') ?? searchParams.get('access_token')
+  const type = hashParams.get('type') ?? searchParams.get('type')
 
   if (token && type === 'recovery') {
-    return <Navigate to={`/reset-password${window.location.hash}`} replace />
+    // Preservamos hash o search según donde venga el token
+    const suffix = location.hash || location.search
+    return <Navigate to={`/reset-password${suffix}`} replace />
   }
 
   return <Registrarse />

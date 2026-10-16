@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { resetPassword } from '../../services/auth'
 import { useTheme } from '../../context/ThemeContext'
 import logoOscuro from '../../assets/LogoNoFondo.png'
@@ -8,6 +8,7 @@ import './resetPassword.css'
 
 export default function ResetPassword() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { theme } = useTheme()
   const logo = theme === 'light' ? logoClaro : logoOscuro
 
@@ -20,26 +21,26 @@ export default function ResetPassword() {
   const [error, setError] = useState('')
   const [exito, setExito] = useState(false)
 
-  // Leer el token del hash al montar
+  // Leer el token del hash o query string al montar
   useEffect(() => {
-    const hash = window.location.hash.substring(1)
-    const params = new URLSearchParams(hash)
-    const token = params.get('access_token')
-    const type = params.get('type')
+    // Usar useLocation() en vez de window.location para garantizar
+    // que React Router haya parseado la URL completamente
+    const hashParams = new URLSearchParams(location.hash.substring(1))
+    const searchParams = new URLSearchParams(location.search)
 
-    // Supabase callback manda el token como query param
-    const searchParams = new URLSearchParams(window.location.search)
-    const tokenQuery = searchParams.get('access_token')
-    const typeQuery = searchParams.get('type')
+    const token = hashParams.get('access_token') ?? searchParams.get('access_token')
+    const type = hashParams.get('type') ?? searchParams.get('type')
 
-    const tokenFinal = token ?? tokenQuery
-    const typeFinal = type ?? typeQuery
+    console.log('[ResetPassword] hash:', location.hash)
+    console.log('[ResetPassword] search:', location.search)
+    console.log('[ResetPassword] token encontrado:', token ? token.substring(0, 30) + '...' : 'NINGUNO')
+    console.log('[ResetPassword] type:', type)
 
-    if (!tokenFinal || typeFinal !== 'recovery') {
+    if (!token || type !== 'recovery') {
       setTokenInvalido(true)
       return
     }
-    setAccessToken(tokenFinal)
+    setAccessToken(token)
     // Limpiar la URL por seguridad
     window.history.replaceState(null, '', window.location.pathname)
   }, [])
