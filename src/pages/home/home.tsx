@@ -33,6 +33,7 @@ export default function Home() {
   const [notifNoLeidas, setNotifNoLeidas] = useState(0)
   const [amigosPopup, setAmigosPopup] = useState<any[] | null>(null)
   const [amigosLikeMap, setAmigosLikeMap] = useState<Record<string, any[]>>({})
+  const [unidoEventos, setUnidoEventos] = useState<Set<string>>(new Set())
   const [compartirEventoId, setCompartirEventoId] = useState<string | null>(null)
   const userId = localStorage.getItem('user_id')
 
@@ -112,11 +113,19 @@ export default function Home() {
             )
 
             const nuevoAmigosLikeMap: Record<string, any[]> = {}
+            const nuevosUnidos = new Set<string>()
 
             participantesResultados.forEach((res, i) => {
               const evId = String(eventosFinales[i].id)
               if (res.status === 'fulfilled') {
                 const participantes: any[] = Array.isArray(res.value) ? res.value : []
+                // Detectar si el usuario actual participa
+                if (userId && participantes.some((p: any) => {
+                  const pid = String(p.user_id ?? p.users?.id ?? p.id ?? '')
+                  return pid === String(userId)
+                })) {
+                  nuevosUnidos.add(evId)
+                }
                 nuevoAmigosLikeMap[evId] = participantes
                   .filter((p: any) => {
                     const pid = String(p.user_id ?? p.users?.id ?? p.id ?? '')
@@ -138,6 +147,7 @@ export default function Home() {
             })
 
             setAmigosLikeMap(nuevoAmigosLikeMap)
+            setUnidoEventos(nuevosUnidos)
           } catch {
             // silencioso
           }
@@ -289,6 +299,9 @@ export default function Home() {
                 }
                 <span className="autor-nombre">{creatorNombre}</span>
                 {esMio && <span className="card-badge-mio">Tu evento</span>}
+                {!esMio && unidoEventos.has(String(ev.id)) && (
+                  <span className="card-badge-unido">✓ Unido</span>
+                )}
                 {esPrivado && (
                   <svg className="privado-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />

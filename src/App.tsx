@@ -43,7 +43,7 @@ function RootRedirect() {
     return <Navigate to={`/reset-password${suffix}`} replace />
   }
 
-  return <Registrarse />
+  return <Navigate to="/login" replace />
 }
 
 function App() {
