@@ -300,7 +300,9 @@ export default function Home() {
                 <span className="autor-nombre">{creatorNombre}</span>
                 {esMio && <span className="card-badge-mio">Tu evento</span>}
                 {!esMio && unidoEventos.has(String(ev.id)) && (
-                  <span className="card-badge-unido">✓ Unido</span>
+                  <span className="card-badge-unido">
+                    {new Date(ev.event_date) < new Date() ? '✓ Asistido' : '✓ Unido'}
+                  </span>
                 )}
                 {esPrivado && (
                   <svg className="privado-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16">

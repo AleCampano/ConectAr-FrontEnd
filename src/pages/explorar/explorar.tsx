@@ -357,9 +357,13 @@ export default function Explorar() {
                       {!esMio && (
                         <button
                           className={yaUnido ? 'exp-btn-unido' : 'exp-btn-unirse'}
-                          onClick={() => handleUnirse(ev.id)}
+                          onClick={() => new Date(ev.event_date) < new Date() ? null : handleUnirse(ev.id)}
+                          disabled={yaUnido && new Date(ev.event_date) < new Date()}
+                          style={yaUnido && new Date(ev.event_date) < new Date() ? { cursor: 'default', opacity: 0.7 } : {}}
                         >
-                          {yaUnido ? '✅ Unido' : '+ Unirse'}
+                          {yaUnido
+                            ? (new Date(ev.event_date) < new Date() ? '✅ Asistido' : '✅ Unido')
+                            : '+ Unirse'}
                         </button>
                       )}
                     </div>

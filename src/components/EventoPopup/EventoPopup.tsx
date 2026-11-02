@@ -233,6 +233,7 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
   const pct       = maxCupos ? Math.min(100, Math.round((ocupados / maxCupos) * 100)) : 0
   const colorClass = maxCupos ? cuposClass(libres!, maxCupos) : 'ok'
   const sinCupos  = libres !== null && libres <= 0 && !unido
+  const yaTermino = evento?.event_date ? new Date(evento.event_date) < new Date() : false
   const mapaUrl   = `https://www.google.com/maps/search/${encodeURIComponent(evento?.location ?? '')}`
 
   const participantesFiltrados = participantes.filter((p: any) => {
@@ -352,7 +353,14 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
             {error && <p className="popup-error">{error}</p>}
 
             {/* Botón acción */}
-            {unido ? (
+            {unido && yaTermino ? (
+              <div className="popup-evento-finalizado">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="16" height="16">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Evento finalizado — asististe a este evento
+              </div>
+            ) : unido ? (
               <>
                 <button
                   className="popup-ya-unido"
@@ -388,6 +396,10 @@ export default function EventoPopup({ evento, onClose }: EventoPopupProps) {
                   </div>
                 )}
               </>
+            ) : yaTermino ? (
+              <div className="popup-evento-finalizado popup-evento-finalizado--no-asistido">
+                Este evento ya finalizó
+              </div>
             ) : sinCupos ? (
               <div className="popup-btn-sin-cupos">🚫 Evento completo — sin cupos disponibles</div>
             ) : (
