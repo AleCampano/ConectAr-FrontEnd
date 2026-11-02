@@ -180,10 +180,12 @@ export async function sincronizarLogros(userId: string): Promise<{
 }
 
 export async function olvidasteContrasena(email: string) {
+  // Mandamos la URL base del frontend para que el backend arme el link correctamente
+  const redirectTo = `${window.location.origin}/reset-password`
   const res = await fetch(`${BASE_URL}/users/forgot-password`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
+    body: JSON.stringify({ email, redirectTo })
   })
   if (!res.ok) throw new Error('Error al enviar el correo')
   return res.json()
