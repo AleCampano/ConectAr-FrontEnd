@@ -95,10 +95,10 @@
 .cd-lista {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 12px 8px;
+  padding: 20px 14px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
 .cd-vacio {
@@ -162,10 +162,10 @@
 
 /* Burbuja */
 .cd-burbuja {
-  background: var(--bg-card2);
-  border: 1px solid var(--border2);
-  border-radius: 18px 18px 18px 4px;
-  padding: 10px 14px 7px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px 16px 16px 4px;
+  padding: 10px 14px 8px;
   max-width: 72%;
   display: flex;
   flex-direction: column;
@@ -173,22 +173,22 @@
 }
 
 .cd-burbuja.mia {
-  background: var(--accent);
-  border-color: transparent;
-  border-radius: 18px 18px 4px 18px;
+  background: var(--accent-bg);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 16px 16px 4px 16px;
 }
 
 .cd-content {
   margin: 0;
   font-size: 14px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .cd-burbuja.mia .cd-content {
-  color: #000;
+  color: var(--text);
 }
 
 .cd-hora {
@@ -198,7 +198,7 @@
 }
 
 .cd-burbuja.mia .cd-hora {
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--text-dim);
 }
 
 /* Input bar */
@@ -275,7 +275,7 @@
 
 .cd-leido {
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--text-dim);
 }
 
 .cd-burbuja:not(.mia) .cd-leido {
@@ -284,14 +284,14 @@
 
 /* ── Tarjeta de invitación a evento privado ── */
 .cd-invitacion-card {
-  background: var(--bg-input);
-  border: 1px solid var(--border2);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 11px 13px 11px;
+  padding: 14px 14px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 8px;
+  margin-top: 6px;
   max-width: 100%;
   overflow: hidden;
 }
@@ -303,7 +303,7 @@
 }
 
 .cd-invitacion-icono {
-  font-size: 16px;
+  font-size: 15px;
   flex-shrink: 0;
 }
 
@@ -319,7 +319,7 @@
 
 .cd-invitacion-sub {
   font-size: 12px;
-  color: var(--text-dim);
+  color: var(--text-muted);
   margin: 0;
   padding-left: 2px;
 }
@@ -327,20 +327,20 @@
 .cd-invitacion-btn {
   background: transparent;
   color: var(--accent);
-  border: 1.5px solid var(--accent);
+  border: 1px solid var(--border2);
   border-radius: 8px;
-  padding: 7px 0;
+  padding: 8px 0;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   width: 100%;
-  margin-top: 2px;
-  transition: background 0.15s, color 0.15s;
+  margin-top: 4px;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .cd-invitacion-btn:hover:not(:disabled) {
-  background: var(--accent);
-  color: #000;
+  background: var(--accent-bg);
+  border-color: var(--accent);
 }
 
 .cd-invitacion-btn:disabled {
