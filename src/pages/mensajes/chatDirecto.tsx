@@ -260,11 +260,17 @@ export default function ChatDirecto() {
                     <Avatar url={avatarUrl} nombre={senderNombre} size={28} />
                   </div>
                 )}
-                <div className={`cd-burbuja ${esMio ? 'mia' : ''}`}>
+                <div className={`cd-burbuja-wrap ${esMio ? 'mia' : ''}`}>
                   {!esMio && (
                     <span className="cd-sender-nombre">{senderNombre}</span>
                   )}
-                  <p className="cd-content">{msg.content.replace(INVITE_RE, '').trim()}</p>
+                  {/* Texto del mensaje (si hay algo además del link) */}
+                  {msg.content.replace(INVITE_RE, '').trim() && (
+                    <div className={`cd-burbuja ${esMio ? 'mia' : ''}`}>
+                      <p className="cd-content">{msg.content.replace(INVITE_RE, '').trim()}</p>
+                    </div>
+                  )}
+                  {/* Tarjeta de evento separada de la burbuja */}
                   {INVITE_RE.test(msg.content) && (
                     <TarjetaInvitacion eventId={INVITE_RE.exec(msg.content)![1]} />
                   )}
