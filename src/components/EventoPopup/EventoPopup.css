@@ -543,17 +543,6 @@
   border-color: var(--border2);
   color: var(--text-muted);
 }
-  width: 100%;
-  background: var(--bg-input);
-  color: #ff5555;
-  border: 1.5px solid rgba(255, 85, 85, 0.4);
-  border-radius: 12px;
-  padding: 13px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: default;
-  margin-top: 2px;
-}
 
 /* ── Ya unido (botón) ── */
 .popup-ya-unido {
