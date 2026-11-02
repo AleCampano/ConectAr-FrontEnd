@@ -284,25 +284,26 @@
 
 /* ── Tarjeta de invitación a evento privado ── */
 .cd-invitacion-card {
-  background: var(--bg-card2);
-  border: 1.5px solid var(--accent);
-  border-radius: 14px;
-  padding: 12px 14px 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 11px 13px 11px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 6px;
+  margin-top: 4px;
   max-width: 100%;
+  overflow: hidden;
 }
 
 .cd-invitacion-header {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
 .cd-invitacion-icono {
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
@@ -320,26 +321,29 @@
   font-size: 12px;
   color: var(--text-dim);
   margin: 0;
+  padding-left: 2px;
 }
 
 .cd-invitacion-btn {
-  background: var(--accent);
-  color: #000;
-  border: none;
-  border-radius: 10px;
-  padding: 8px 0;
-  font-size: 13px;
+  background: transparent;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  padding: 7px 0;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   width: 100%;
-  transition: opacity 0.15s;
+  margin-top: 2px;
+  transition: background 0.15s, color 0.15s;
 }
 
-.cd-invitacion-btn:hover {
-  opacity: 0.85;
+.cd-invitacion-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #000;
 }
 
 .cd-invitacion-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
 }
